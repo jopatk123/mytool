@@ -149,11 +149,11 @@ function createWindow(): void {
 
   // 加载页面
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
+    void mainWindow.loadURL('http://localhost:5173');
     // 在开发时暂时不要自动打开 devtools，避免 devtools 脚本影响全局环境
     // mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    void mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
   // 窗口准备好后显示
@@ -282,17 +282,24 @@ async function initialize(): Promise<void> {
 }
 
 // 应用生命周期
-app.whenReady().then(async () => {
-  await observability.initialize(app);
-  await initialize();
-  createWindow();
+void app
+  .whenReady()
+  .then(async () => {
+    await observability.initialize(app);
+    await initialize();
+    createWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  })
+  .catch(error => {
+    logger.error('Failed during app readiness sequence', error);
+    notifyFatalError('应用启动失败', error);
+    app.quit();
   });
-});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

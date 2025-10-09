@@ -1,5 +1,14 @@
 # 开发文档
 
+## 开发环境完整性校验
+
+- `npm start` / `npm run dev:electron` 会在启动 Electron 之前执行 `scripts/ensure-electron-dist.cjs`：
+  - 校验 `dist-electron/src/main/*.js` 与 `dist-electron/src/shared/*.js` 是否存在；
+  - 若缺失或编译时间早于 `src/main`、`src/shared` 源码，将删除旧的增量缓存并重新运行 `tsc -p tsconfig.electron.json`；
+  - 若 `dist-electron/package.json` 不存在，会自动写入 `{ "type": "commonjs" }`，确保主进程脚本以 CommonJS 方式加载。
+- 若刚克隆仓库或执行了清理脚本，可运行 `npm run ensure:electron-dist` 手动触发校验与修复。
+- 需要完全重新编译时，执行 `npm run build:electron`，该命令会强制清理增量缓存后重新生成所有产物。
+
 ## 架构设计
 
 ### 整体架构

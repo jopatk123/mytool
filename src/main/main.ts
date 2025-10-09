@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { AppErrorCode, toIPCErrorResponse, toIPCSuccessResponse, toReportableError } from '../shared/errors.js';
 import { IPCChannel } from '../shared/types.js';
 import type { ImageScanRequest, ImageJobRequest } from '../shared/types.js';
@@ -8,9 +7,6 @@ import { addLogListener, createLogger } from '../shared/utils/logger.js';
 import type { LogEntry } from '../shared/utils/logger.js';
 import { observability } from './observability/Observability.js';
 import { ToolManager } from './tools/ToolManager.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const logger = createLogger('Main');
 

@@ -92,6 +92,8 @@ npm start
 scripts\dev.bat
 ```
 
+> ℹ️ **开发时的完整性校验**：启动 Electron 进程前会自动运行 `scripts/ensure-electron-dist.cjs`，若发现 `dist-electron` 关键文件缺失或比源码旧，会重新编译主进程并修复 `dist-electron/package.json`。如遇本地构建异常，可手动执行 `npm run ensure:electron-dist` 进行自检与修复。
+
 ### 构建
 
 ```bash

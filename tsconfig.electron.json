@@ -1,14 +1,15 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "outDir": "dist-electron",
     "noEmit": false,
     "allowImportingTsExtensions": false,
     "lib": ["ES2020"],
     "types": ["node"],
-    "composite": true
+    "composite": true,
+    "esModuleInterop": true
   },
   "include": ["src/main/**/*", "src/shared/**/*"],
   "exclude": ["src/renderer/**/*", "src/tests/**/*"]

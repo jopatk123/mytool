@@ -2,7 +2,8 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { AppErrorCode, toIPCErrorResponse, toIPCSuccessResponse, toReportableError } from '../shared/errors.js';
-import { IPCChannel, ImageProcessOptions } from '../shared/types.js';
+import { IPCChannel } from '../shared/types.js';
+import type { ImageScanRequest, ImageJobRequest } from '../shared/types.js';
 import { addLogListener, createLogger } from '../shared/utils/logger.js';
 import type { LogEntry } from '../shared/utils/logger.js';
 import { observability } from './observability/Observability.js';
@@ -161,7 +162,18 @@ function createWindow(): void {
   if (process.env.NODE_ENV === 'development') {
     void mainWindow.loadURL('http://localhost:5173');
     // 在开发时暂时不要自动打开 devtools，避免 devtools 脚本影响全局环境
-    // mainWindow.webContents.openDevTools();
+    // 如果显式设置了 ELECTRON_SHOW_DEVTOOLS=1，则在开发时打开 DevTools，方便查看控制台
+    try {
+      const showDevtools = String(process.env.ELECTRON_SHOW_DEVTOOLS ?? '').trim() === '1';
+      if (showDevtools) {
+        // 使用 undocked 模式打开以显示控制台面板
+        logger.info('ELECTRON_SHOW_DEVTOOLS=1 detected — opening DevTools');
+        mainWindow.webContents.openDevTools({ mode: 'undocked' });
+        logger.info('DevTools open requested');
+      }
+    } catch (err) {
+      logger.warn('Failed to open DevTools automatically', { err });
+    }
   } else {
     void mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -233,8 +245,8 @@ function initializeIPC(): void {
   });
 
   // 执行工具
-  registerIpcHandler(IPCChannel.TOOL_EXECUTE, async (_event, toolId: string, params: unknown) => {
-    return toolManager.executeTool(toolId, params);
+  registerIpcHandler(IPCChannel.TOOL_EXECUTE, async (event, toolId: string, params: unknown) => {
+    return toolManager.executeTool(toolId, params, { event, sender: event.sender });
   });
 
   // 文件选择
@@ -259,12 +271,25 @@ function initializeIPC(): void {
   });
 
   // 图片处理
-  registerIpcHandler(IPCChannel.IMAGE_PROCESS, async (_event, imagePath: string, options: ImageProcessOptions) => {
+  registerIpcHandler(IPCChannel.IMAGE_SCAN_DIRECTORY, async (event, request: ImageScanRequest) => {
     return toolManager.executeTool('image-tool', {
-      action: 'processImage',
-      imagePath,
-      options,
-    });
+      action: 'scanDirectory',
+      ...request,
+    }, { event, sender: event.sender });
+  });
+
+  registerIpcHandler(IPCChannel.IMAGE_JOB_START, async (event, request: ImageJobRequest) => {
+    return toolManager.executeTool('image-tool', {
+      action: 'startBatchJob',
+      ...request,
+    }, { event, sender: event.sender });
+  });
+
+  registerIpcHandler(IPCChannel.IMAGE_JOB_CANCEL, async (event, jobId: string) => {
+    return toolManager.executeTool('image-tool', {
+      action: 'cancelJob',
+      jobId,
+    }, { event, sender: event.sender });
   });
 
   registerIpcHandler(IPCChannel.OBSERVABILITY_GET_SNAPSHOT, async () => {
@@ -321,3 +346,14 @@ app.on('before-quit', () => {
   logger.info('Application is quitting...');
   toolManager.cleanup();
 });
+
+  app.on('will-quit', () => {
+    logger.info('Application will quit (will-quit event)');
+  });
+
+  // 记录窗口 close 事件以便调试为何应用退出
+  app.on('browser-window-created', (_event, window) => {
+    window.on('close', () => {
+      logger.info('Browser window close event fired', { id: window.id });
+    });
+  });

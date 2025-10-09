@@ -26,7 +26,7 @@ describe('ToolManager', () => {
     
     const imageTool = tools.find(t => t.id === 'image-tool');
     expect(imageTool).toBeDefined();
-    expect(imageTool?.name).toBe('图片处理');
+  expect(imageTool?.name).toBe('图片批量处理');
   });
 
   it('should have file tool', async () => {
@@ -35,7 +35,7 @@ describe('ToolManager', () => {
     
     const fileTool = tools.find(t => t.id === 'file-tool');
     expect(fileTool).toBeDefined();
-    expect(fileTool?.name).toBe('文件工具');
+  expect(fileTool?.name).toBe('文件工具 (占位)');
   });
 
   it('should cleanup without errors', async () => {

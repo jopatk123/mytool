@@ -19,7 +19,11 @@ describe('electron API wrapper', () => {
     await electronAPI.executeTool('file-tool', {});
     await electronAPI.selectFile();
     await electronAPI.saveFile();
-    await electronAPI.processImage('path', {});
+  await electronAPI.scanImages({ directory: '/tmp', options: { includeSubdirectories: true } });
+  await electronAPI.startImageJob({ scanId: 'scan', assetIds: [], operations: [] });
+  await electronAPI.cancelImageJob('job-123');
+  const unsubscribe = electronAPI.onImageJobEvent(() => {});
+  unsubscribe();
     electronAPI.windowMinimize();
     electronAPI.windowMaximize();
     electronAPI.windowClose();
@@ -30,8 +34,11 @@ describe('electron API wrapper', () => {
     expect(mock.getToolList).toHaveBeenCalledTimes(1);
     expect(mock.executeTool).toHaveBeenCalledWith('file-tool', {});
     expect(mock.selectFile).toHaveBeenCalledTimes(1);
-    expect(mock.saveFile).toHaveBeenCalledTimes(1);
-    expect(mock.processImage).toHaveBeenCalledWith('path', {});
+  expect(mock.saveFile).toHaveBeenCalledTimes(1);
+  expect(mock.scanImages).toHaveBeenCalledTimes(1);
+  expect(mock.startImageJob).toHaveBeenCalledTimes(1);
+  expect(mock.cancelImageJob).toHaveBeenCalledWith('job-123');
+  expect(mock.onImageJobEvent).toHaveBeenCalledTimes(1);
     expect(mock.windowMinimize).toHaveBeenCalledTimes(1);
     expect(mock.windowMaximize).toHaveBeenCalledTimes(1);
     expect(mock.windowClose).toHaveBeenCalledTimes(1);

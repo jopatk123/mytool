@@ -1,5 +1,5 @@
 import { AppError, AppErrorCode } from '../../shared/errors.js';
-import { ITool, ToolConfig } from '../../shared/types.js';
+import { ITool, ToolConfig, ToolExecuteContext } from '../../shared/types.js';
 import { createLogger } from '../../shared/utils/logger.js';
 import { ImageTool } from './ImageTool.js';
 import { FileTool } from './FileTool.js';
@@ -63,7 +63,7 @@ export class ToolManager {
   /**
    * 执行工具
    */
-  async executeTool(toolId: string, params: unknown): Promise<unknown> {
+  async executeTool(toolId: string, params: unknown, context?: ToolExecuteContext): Promise<unknown> {
     const tool = this.tools.get(toolId);
     
     if (!tool) {
@@ -87,7 +87,7 @@ export class ToolManager {
     logger.info(`Executing tool action`, { toolId, action });
 
     try {
-      const result = await tool.execute(action, payload);
+      const result = await tool.execute(action, payload, context);
       logger.success(`Tool action completed`, { toolId, action });
       return result;
     } catch (error) {

@@ -13,6 +13,8 @@ afterEach(() => {
 Object.assign(globalThis, { expect });
 
 // Mock Electron API
+const unsubscribeMock = vi.fn();
+
 const electronAPIMock: ElectronAPI = {
   version: ELECTRON_API_VERSION,
   windowMinimize: vi.fn(),
@@ -22,7 +24,10 @@ const electronAPIMock: ElectronAPI = {
   executeTool: vi.fn(async () => ({ success: true })),
   selectFile: vi.fn(async () => null),
   saveFile: vi.fn(async () => null),
-  processImage: vi.fn(async () => ({ success: true })),
+  scanImages: vi.fn(async () => ({ scanId: 'test', directory: '/', assets: [], scannedFiles: 0, totalFiles: 0 })),
+  startImageJob: vi.fn(async () => ({ jobId: 'job-1' })),
+  cancelImageJob: vi.fn(async () => undefined),
+  onImageJobEvent: vi.fn(() => unsubscribeMock),
   reportError: vi.fn(),
   reportLog: vi.fn(),
   getObservabilitySnapshot: vi.fn(async () => ({ logs: [], errors: [] })),

@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { Layout as AntLayout, Menu, theme, Button } from 'antd';
 import {
   HomeOutlined,
@@ -8,18 +8,13 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 import { appInfo } from '@renderer/env';
 import './Layout.css';
 
 const { Header, Sider, Content } = AntLayout;
-
-interface LayoutProps {
-  children: ReactNode;
-}
-
-function Layout({ children }: LayoutProps) {
+function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,7 +114,7 @@ function Layout({ children }: LayoutProps) {
             overflow: 'auto',
           }}
         >
-          {children}
+          <Outlet />
         </Content>
       </AntLayout>
     </AntLayout>

@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import { ELECTRON_API_VERSION } from '../shared/constants';
 import { AppError } from '../shared/errors.js';
-import { IPCChannel, ElectronAPI, RendererErrorPayload, IPCErrorResponse, IPCResponse, ToolConfig, RendererLogPayload, ObservabilitySnapshot } from '../shared/types.js';
+import { IPCChannel, ElectronAPI, RendererErrorPayload, IPCErrorResponse, IPCResponse, ToolConfig, RendererLogPayload, ObservabilitySnapshot, ImageScanRequest, ImageScanResult, ImageJobRequest, ImageJobEvent } from '../shared/types.js';
 
 const isIpcResponse = <T>(value: unknown): value is IPCResponse<T> =>
   typeof value === 'object' && value !== null && 'success' in value;
@@ -36,6 +36,18 @@ const invoke = async <T>(channel: IPCChannel, ...args: unknown[]): Promise<T> =>
 /**
  * Electron API 暴露给渲染进程
  */
+const jobEventListeners = new Set<(event: ImageJobEvent) => void>();
+
+ipcRenderer.on(IPCChannel.IMAGE_JOB_EVENT, (_event, payload: ImageJobEvent) => {
+  jobEventListeners.forEach(listener => {
+    try {
+      listener(payload);
+    } catch (error) {
+      console.error('[electronAPI] job event listener failed', error);
+    }
+  });
+});
+
 const electronAPI: ElectronAPI = Object.freeze({
   version: ELECTRON_API_VERSION,
   // 窗口控制
@@ -55,8 +67,18 @@ const electronAPI: ElectronAPI = Object.freeze({
     invoke<string | null>(IPCChannel.FILE_SAVE, options),
 
   // 图片处理
-  processImage: (imagePath: string, options: unknown) => 
-    invoke<unknown>(IPCChannel.IMAGE_PROCESS, imagePath, options),
+  scanImages: (request: ImageScanRequest) =>
+    invoke<ImageScanResult>(IPCChannel.IMAGE_SCAN_DIRECTORY, request),
+  startImageJob: (request: ImageJobRequest) =>
+    invoke<{ jobId: string }>(IPCChannel.IMAGE_JOB_START, request),
+  cancelImageJob: (jobId: string) =>
+    invoke<void>(IPCChannel.IMAGE_JOB_CANCEL, jobId),
+  onImageJobEvent: (callback: (event: ImageJobEvent) => void) => {
+    jobEventListeners.add(callback);
+    return () => {
+      jobEventListeners.delete(callback);
+    };
+  },
   reportError: (errorInfo: RendererErrorPayload) => ipcRenderer.send(IPCChannel.RENDERER_ERROR, errorInfo),
   reportLog: (entry: RendererLogPayload) => ipcRenderer.send(IPCChannel.LOG_EVENT, entry),
   getObservabilitySnapshot: () => invoke<ObservabilitySnapshot>(IPCChannel.OBSERVABILITY_GET_SNAPSHOT),

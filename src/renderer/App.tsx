@@ -23,11 +23,7 @@ function App() {
     [
       {
         path: '/',
-        element: (
-          <Layout>
-            <Home />
-          </Layout>
-        ),
+        element: <Layout />,
         children: [
           { index: true, element: <Home /> },
           { path: 'tools/image', element: <ImageTool /> },

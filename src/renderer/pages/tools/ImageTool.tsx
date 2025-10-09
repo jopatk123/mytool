@@ -1,131 +1,201 @@
-import { useState } from 'react';
-import { Card, Upload, Button, Space, Typography, Select, InputNumber, message } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import type { UploadProps } from 'antd';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, Card, Space, Typography, message } from 'antd';
 import { createLogger } from '@shared/utils/logger';
+import type { ImageJobRequest } from '@shared/types';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
+import { FolderSelector } from './image/FolderSelector';
+import { ImageGrid } from './image/ImageGrid';
+import { OperationPanel } from './image/OperationPanel';
+import { JobProgress } from './image/JobProgress';
+import { useImageToolStore } from './image/store';
 
 const { Title, Text } = Typography;
-const { Dragger } = Upload;
 
 const logger = createLogger('ImageToolPage');
 
 function ImageTool() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [format, setFormat] = useState<string>('jpeg');
-  const [quality, setQuality] = useState<number>(80);
-  const [width, setWidth] = useState<number | null>(null);
-  const [height, setHeight] = useState<number | null>(null);
   const electronAPI = useElectronAPI();
+  const [scanning, setScanning] = useState(false);
 
-  const uploadProps: UploadProps = {
-    name: 'file',
-    multiple: false,
-    accept: 'image/*',
-    beforeUpload: (file) => {
-      setSelectedFile(file);
-      return false;
-    },
-    onRemove: () => {
-      setSelectedFile(null);
-    },
-  };
+  const {
+    directory,
+    includeSubdirectories,
+    setIncludeSubdirectories,
+    setDirectory,
+    setScanResult,
+    clearScan,
+    assets,
+    selectedAssetIds,
+    toggleAsset,
+    selectAll,
+    clearSelection,
+    scanId,
+    status,
+    progress,
+    summary,
+    errors,
+    updateFromEvent,
+    jobId,
+    setJobId,
+  } = useImageToolStore(state => ({
+    directory: state.directory,
+    includeSubdirectories: state.includeSubdirectories,
+    setIncludeSubdirectories: state.setIncludeSubdirectories,
+    setDirectory: state.setDirectory,
+    setScanResult: state.setScanResult,
+    clearScan: state.clearScan,
+    assets: state.assets,
+    selectedAssetIds: state.selectedAssetIds,
+    toggleAsset: state.toggleAsset,
+    selectAll: state.selectAll,
+    clearSelection: state.clearSelection,
+    scanId: state.scanId,
+    status: state.status,
+    progress: state.progress,
+    summary: state.summary,
+    errors: state.errors,
+    updateFromEvent: state.updateFromEvent,
+    jobId: state.jobId,
+    setJobId: state.setJobId,
+  }));
 
-  const handleProcess = async () => {
-    if (!selectedFile) {
-      message.warning('请先选择图片文件');
+  useEffect(() => {
+    let dispose: () => void = () => {};
+    try {
+      dispose = electronAPI.onImageJobEvent(event => {
+        updateFromEvent(event);
+      });
+    } catch (error) {
+      logger.warn('订阅图片任务事件失败，可能在非 Electron 环境运行', error);
+    }
+
+    return () => {
+      try {
+        dispose();
+      } catch (error) {
+        logger.warn('取消图片任务事件订阅失败', error);
+      }
+    };
+  }, [electronAPI, updateFromEvent]);
+
+  const handleSelectFolder = useCallback(async () => {
+    try {
+      setScanning(true);
+      const result = await electronAPI.selectFile({ properties: ['openDirectory'] });
+      if (!result || result.length === 0) {
+        setScanning(false);
+        return;
+      }
+
+      const folder = result[0];
+      setDirectory(folder);
+      const scanResult = await electronAPI.scanImages({
+        directory: folder,
+        options: { includeSubdirectories },
+      });
+      setScanResult(scanResult.scanId, scanResult.assets, folder);
+      message.success(`已扫描 ${scanResult.assets.length} 张图片`);
+    } catch (error) {
+      logger.error('Scan folder failed', error);
+      message.error('扫描图片目录失败，请检查路径或权限');
+    } finally {
+      setScanning(false);
+    }
+  }, [electronAPI, includeSubdirectories, setDirectory, setScanResult]);
+
+  const handleRunJob = useCallback(async (payload: { operations: ImageJobRequest['operations']; options: ImageJobRequest['options'] }) => {
+    if (!scanId) {
+      message.warning('请先扫描图片目录');
+      return;
+    }
+
+    if (selectedAssetIds.length === 0) {
+      message.warning('请选择要处理的图片');
       return;
     }
 
     try {
-      message.loading({ content: '正在处理...', key: 'process' });
-      
-      // 调用 Electron API 处理图片
-      const result = await electronAPI.processImage(selectedFile.path, {
-        format,
-        quality,
-        resize: width || height ? { width, height } : undefined,
-      });
+      const request: ImageJobRequest = {
+        scanId,
+        assetIds: selectedAssetIds,
+        operations: payload.operations,
+        options: {
+          ...payload.options,
+          concurrency: payload.options?.concurrency,
+        },
+      };
 
-      message.success({ content: '处理完成！', key: 'process' });
-      logger.success('Image processing completed', result);
+      const { jobId: startedJobId } = await electronAPI.startImageJob(request);
+      setJobId(startedJobId);
+      message.success('批处理任务已开始');
     } catch (error) {
-      message.error({ content: '处理失败', key: 'process' });
-      logger.error('Image processing failed', error);
+      logger.error('Start image job failed', error);
+      message.error('启动批处理失败，请稍后重试');
     }
-  };
+  }, [electronAPI, scanId, selectedAssetIds, setJobId]);
+
+  const handleCancelJob = useCallback(async () => {
+    if (!jobId) return;
+    try {
+      await electronAPI.cancelImageJob(jobId);
+      message.info('已发送取消请求');
+    } catch (error) {
+      logger.error('Cancel image job failed', error);
+      message.error('取消任务失败');
+    }
+  }, [electronAPI, jobId]);
+
+  const isRunning = useMemo(() => status === 'running', [status]);
 
   return (
-    <div>
-      <Title level={2}>图片处理工具</Title>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Card title="上传图片">
-          <Dragger {...uploadProps}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">点击或拖拽图片到此区域上传</p>
-            <p className="ant-upload-hint">
-              支持 JPG、PNG、WebP、GIF、BMP 等格式
-            </p>
-          </Dragger>
-        </Card>
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Title level={2}>图片批量处理工具</Title>
 
-        {selectedFile && (
-          <Card title="处理选项">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <div>
-                <Text strong>输出格式：</Text>
-                <Select
-                  value={format}
-                  onChange={setFormat}
-                  style={{ width: 200, marginLeft: 16 }}
-                  options={[
-                    { label: 'JPEG', value: 'jpeg' },
-                    { label: 'PNG', value: 'png' },
-                    { label: 'WebP', value: 'webp' },
-                  ]}
-                />
-              </div>
+      <Card>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <FolderSelector
+            directory={directory}
+            includeSubdirectories={includeSubdirectories}
+            onSelectDirectory={handleSelectFolder}
+            onToggleInclude={setIncludeSubdirectories}
+            loading={scanning}
+          />
 
-              <div>
-                <Text strong>质量（1-100）：</Text>
-                <InputNumber
-                  min={1}
-                  max={100}
-                  value={quality}
-                  onChange={(val) => setQuality(val || 80)}
-                  style={{ width: 200, marginLeft: 16 }}
-                />
-              </div>
-
-              <div>
-                <Text strong>调整尺寸：</Text>
-                <Space style={{ marginLeft: 16 }}>
-                  <InputNumber
-                    placeholder="宽度"
-                    value={width}
-                    onChange={setWidth}
-                    style={{ width: 120 }}
-                  />
-                  <span>×</span>
-                  <InputNumber
-                    placeholder="高度"
-                    value={height}
-                    onChange={setHeight}
-                    style={{ width: 120 }}
-                  />
-                </Space>
-              </div>
-
-              <Button type="primary" size="large" onClick={handleProcess}>
-                开始处理
+          <Space
+            align="center"
+            wrap
+            style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}
+          >
+            <Space>
+              <Button onClick={selectAll} disabled={assets.length === 0}>
+                全选
+              </Button>
+              <Button onClick={clearSelection} disabled={selectedAssetIds.length === 0}>
+                清除选择
+              </Button>
+              <Button danger onClick={clearScan} disabled={assets.length === 0}>
+                清除扫描结果
               </Button>
             </Space>
-          </Card>
-        )}
-      </Space>
-    </div>
+            <Text type="secondary">
+              当前选中 {selectedAssetIds.length} / {assets.length}
+            </Text>
+          </Space>
+        </Space>
+      </Card>
+
+      <ImageGrid assets={assets} selectedAssetIds={selectedAssetIds} onToggle={toggleAsset} />
+
+      <OperationPanel
+        disabled={assets.length === 0 || scanning}
+        running={isRunning}
+        assetCount={selectedAssetIds.length}
+        onRun={handleRunJob}
+        onCancel={handleCancelJob}
+      />
+
+      <JobProgress progress={progress} summary={summary} errors={errors} />
+    </Space>
   );
 }
 

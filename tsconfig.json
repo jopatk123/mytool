@@ -33,6 +33,6 @@
       "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*", "src/tools/**/*", "src/tests/**/*"],
+  "include": ["src/renderer/**/*", "src/shared/**/*", "src/tests/**/*"],
   "references": [{ "path": "./tsconfig.electron.json" }]
 }

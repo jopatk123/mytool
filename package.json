@@ -14,11 +14,16 @@
     "build:electron": "tsc -p tsconfig.electron.json",
     "package": "npm run build && npm run build:electron && electron-builder",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
     "preview": "vite preview",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,css}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,css}\"",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist dist-electron release node_modules/.vite"
   },
   "dependencies": {
     "antd": "^5.12.0",

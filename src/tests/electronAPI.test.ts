@@ -24,6 +24,8 @@ describe('electron API wrapper', () => {
     electronAPI.windowMaximize();
     electronAPI.windowClose();
     electronAPI.reportError(payload);
+    electronAPI.reportLog({ timestamp: Date.now(), level: 'info', prefix: 'test', message: 'delegation', args: [] });
+    await electronAPI.getObservabilitySnapshot();
 
     expect(mock.getToolList).toHaveBeenCalledTimes(1);
     expect(mock.executeTool).toHaveBeenCalledWith('file-tool', {});
@@ -34,6 +36,8 @@ describe('electron API wrapper', () => {
     expect(mock.windowMaximize).toHaveBeenCalledTimes(1);
     expect(mock.windowClose).toHaveBeenCalledTimes(1);
     expect(mock.reportError).toHaveBeenCalledWith(payload);
+    expect(mock.reportLog).toHaveBeenCalledTimes(1);
+    expect(mock.getObservabilitySnapshot).toHaveBeenCalledTimes(1);
   });
 
   it('warns on version mismatch', () => {

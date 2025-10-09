@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Card, Upload, Button, Space, Typography, Select, InputNumber, message } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
+import { createLogger } from '@shared/utils/logger';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 
 const { Title, Text } = Typography;
 const { Dragger } = Upload;
+
+const logger = createLogger('ImageToolPage');
 
 function ImageTool() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -45,10 +48,10 @@ function ImageTool() {
       });
 
       message.success({ content: '处理完成！', key: 'process' });
-      console.log('Process result:', result);
+      logger.success('Image processing completed', result);
     } catch (error) {
       message.error({ content: '处理失败', key: 'process' });
-      console.error('Process error:', error);
+      logger.error('Image processing failed', error);
     }
   };
 

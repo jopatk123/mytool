@@ -1,5 +1,5 @@
 import { ELECTRON_API_VERSION } from '@shared/constants';
-import type { ElectronAPI } from '@shared/types';
+import type { ElectronAPI, RendererLogPayload } from '@shared/types';
 
 type ElectronAPIWithMeta = ElectronAPI & { readonly version: string };
 
@@ -44,6 +44,8 @@ const electronAPI: ElectronAPI = Object.freeze({
   saveFile: (options?: Parameters<ElectronAPI['saveFile']>[0]) => getRaw().saveFile(options),
   processImage: (imagePath: string, options: unknown) => getRaw().processImage(imagePath, options),
   reportError: (payload: Parameters<ElectronAPI['reportError']>[0]) => getRaw().reportError(payload),
+  reportLog: (entry: RendererLogPayload) => getRaw().reportLog(entry),
+  getObservabilitySnapshot: () => getRaw().getObservabilitySnapshot(),
 }) as ElectronAPI;
 
 export { electronAPI };

@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Card, Button, List, Space, Typography, Input, message, Tag } from 'antd';
 import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 import { formatFileSize, formatDate } from '@shared/utils/helpers';
+import { createLogger } from '@shared/utils/logger';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 
 const { Title, Text } = Typography;
+
+const logger = createLogger('FileToolPage');
 
 interface FileItem {
   name: string;
@@ -37,10 +40,11 @@ function FileTool() {
         
         setFiles(fileItems);
         message.success(`已选择 ${paths.length} 个文件`);
+        logger.info('Selected files for batch rename', { count: paths.length });
       }
     } catch (error) {
       message.error('选择文件失败');
-      console.error('Select files error:', error);
+      logger.error('Select files error', error);
     }
   };
 
@@ -66,10 +70,10 @@ function FileTool() {
       });
 
       message.success({ content: '重命名完成！', key: 'rename' });
-      console.log('Rename result:', result);
+  logger.success('Batch rename completed', result);
     } catch (error) {
       message.error({ content: '重命名失败', key: 'rename' });
-      console.error('Rename error:', error);
+      logger.error('Batch rename error', error);
     }
   };
 

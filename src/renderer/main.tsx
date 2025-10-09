@@ -3,12 +3,27 @@ import ReactDOM from 'react-dom/client';
 import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { electronAPI, resolveElectronAPI } from '@renderer/api/electron';
+import { addLogListener, createLogger } from '@shared/utils/logger';
+import ErrorBoundary from '@renderer/components/ErrorBoundary';
 import { ElectronAPIProvider } from '@renderer/hooks/useElectronAPI';
 import App from './App';
 import './styles/index.css';
 
+const logger = createLogger('RendererBootstrap');
+
 try {
   resolveElectronAPI();
+
+  addLogListener((entry) => {
+    if (entry.level === 'trace' || entry.level === 'debug') {
+      return;
+    }
+    try {
+      electronAPI.reportLog(entry);
+    } catch (forwardError) {
+      console.warn('Failed to forward log entry to main process:', forwardError);
+    }
+  });
 
   window.addEventListener('error', (event) => {
     try {
@@ -18,7 +33,7 @@ try {
         stack: event.error?.stack,
       });
     } catch (reportError) {
-      console.warn('Failed to report renderer error to main process:', reportError);
+      logger.warn('Failed to report renderer error to main process', reportError);
     }
   });
 
@@ -29,11 +44,11 @@ try {
         reason: String(event.reason),
       });
     } catch (reportError) {
-      console.warn('Failed to report unhandled rejection to main process:', reportError);
+      logger.warn('Failed to report unhandled rejection to main process', reportError);
     }
   });
 } catch (apiError) {
-  console.warn('electronAPI is unavailable. Running in a non-Electron environment?', apiError);
+  logger.warn('electronAPI is unavailable. Running in a non-Electron environment?', apiError);
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -49,7 +64,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       }}
     >
       <ElectronAPIProvider value={electronAPI}>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </ElectronAPIProvider>
     </ConfigProvider>
   </React.StrictMode>

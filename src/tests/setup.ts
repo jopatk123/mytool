@@ -24,6 +24,8 @@ const electronAPIMock: ElectronAPI = {
   saveFile: vi.fn(async () => null),
   processImage: vi.fn(async () => ({ success: true })),
   reportError: vi.fn(),
+  reportLog: vi.fn(),
+  getObservabilitySnapshot: vi.fn(async () => ({ logs: [], errors: [] })),
 };
 
 const windowWithAPI = globalThis.window as typeof window & { electronAPI?: ElectronAPI };

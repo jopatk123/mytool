@@ -1,3 +1,4 @@
+import { AppError, AppErrorCode } from '../../shared/errors.js';
 import { ITool, ToolConfig } from '../../shared/types.js';
 import { createLogger } from '../../shared/utils/logger.js';
 import { ImageTool } from './ImageTool.js';
@@ -42,7 +43,11 @@ export class ToolManager {
       logger.info(`Registered tool: ${tool.config.name}`);
     } catch (error) {
       logger.error(`Failed to register tool ${tool.config.name}:`, error);
-      throw error;
+      throw new AppError(AppErrorCode.NOT_READY, `Failed to register tool ${tool.config.id}`, {
+        cause: error,
+        context: { toolId: tool.config.id },
+        recoverable: false,
+      });
     }
   }
 
@@ -62,17 +67,37 @@ export class ToolManager {
     const tool = this.tools.get(toolId);
     
     if (!tool) {
-      throw new Error(`Tool not found: ${toolId}`);
+      throw new AppError(AppErrorCode.NOT_FOUND, `Tool not found: ${toolId}`, {
+        recoverable: false,
+        context: { toolId },
+      });
     }
 
-    logger.info(`Executing tool: ${tool.config.name}`);
+    const payload = params ?? {};
+    const action = typeof (payload as { action?: unknown }).action === 'string'
+      ? (payload as { action: string }).action
+      : undefined;
 
-    // 标记 params 已使用（当前实现中不需要具体处理）以避免未使用参数的编译错误
-    void params;
+    if (!action) {
+      throw new AppError(AppErrorCode.INVALID_ARGUMENT, `Missing action for tool ${toolId}`, {
+        context: { toolId },
+      });
+    }
 
-    // 这里需要工具实现具体的执行方法
-    // 暂时返回成功
-    return { success: true };
+    logger.info(`Executing tool action`, { toolId, action });
+
+    try {
+      const result = await tool.execute(action, payload);
+      logger.success(`Tool action completed`, { toolId, action });
+      return result;
+    } catch (error) {
+      logger.error(`Tool action failed`, { toolId, action, error });
+      throw new AppError(AppErrorCode.EXECUTION_FAILED, `Tool ${tool.config.name} failed to execute action ${action}`, {
+        cause: error,
+        context: { toolId, action },
+        recoverable: false,
+      });
+    }
   }
 
   /**

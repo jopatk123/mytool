@@ -2,6 +2,7 @@
  * 工具配置接口
  */
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
+import type { LogEntry } from './utils/logger';
 
 /**
  * 工具配置接口
@@ -33,6 +34,7 @@ export interface ITool {
   readonly config: ToolConfig;
   initialize(): Promise<void>;
   cleanup(): void;
+  execute(action: string, params: unknown): Promise<unknown>;
 }
 
 /**
@@ -54,6 +56,9 @@ export enum IPCChannel {
   
   // 图片处理
   IMAGE_PROCESS = 'image:process',
+  // 日志与观测
+  LOG_EVENT = 'log:event',
+  OBSERVABILITY_GET_SNAPSHOT = 'observability:get-snapshot',
   // 渲染器错误上报
   RENDERER_ERROR = 'renderer:error',
 }
@@ -105,6 +110,25 @@ export interface RendererErrorPayload {
   details?: unknown;
 }
 
+export type LogOrigin = 'main' | 'renderer';
+
+export interface ObservedLogEntry extends LogEntry {
+  origin: LogOrigin;
+}
+
+export interface ObservedErrorEntry extends RendererErrorPayload {
+  timestamp: number;
+  environment?: LogOrigin;
+  origin: LogOrigin;
+}
+
+export interface ObservabilitySnapshot {
+  logs: ObservedLogEntry[];
+  errors: ObservedErrorEntry[];
+}
+
+export type RendererLogPayload = LogEntry;
+
 /**
  * preload 暴露给渲染进程的 API（只读）
  */
@@ -119,4 +143,20 @@ export interface ElectronAPI {
   saveFile(options?: SaveDialogOptions): Promise<string | null>;
   processImage(imagePath: string, options: unknown): Promise<unknown>;
   reportError(payload: RendererErrorPayload): void;
+  reportLog(entry: RendererLogPayload): void;
+  getObservabilitySnapshot(): Promise<ObservabilitySnapshot>;
 }
+
+export type {
+  AppError,
+  AppErrorCode,
+  AppErrorOptions,
+  IPCErrorPayload,
+  IPCErrorResponse,
+  IPCResponse,
+  IPCSuccessResponse,
+  ErrorSeverity,
+  SerializedAppError,
+} from './errors';
+
+export type { LogEntry, LogLevel } from './utils/logger';

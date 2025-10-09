@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, Row, Col, Statistic, Typography, Space, Divider } from 'antd';
 import { PictureOutlined, FolderOutlined, ToolOutlined } from '@ant-design/icons';
 import { ToolConfig } from '@shared/types';
+import { createLogger } from '@shared/utils/logger';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
+
+const logger = createLogger('HomePage');
 
 const { Title, Paragraph } = Typography;
 
@@ -12,10 +15,11 @@ function Home() {
 
   const loadTools = useCallback(async () => {
     try {
-  const toolList = await electronAPI.getToolList();
+      const toolList = await electronAPI.getToolList();
       setTools(toolList);
+      logger.success('Loaded tool list', { count: toolList.length });
     } catch (error) {
-      console.error('Failed to load tools:', error);
+      logger.error('Failed to load tools', error);
     }
   }, [electronAPI]);
 

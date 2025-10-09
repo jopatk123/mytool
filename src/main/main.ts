@@ -78,7 +78,17 @@ const toSafeJson = (value: unknown): unknown => {
       return { type: 'UnserializableObject' };
     }
   }
-  return String(value);
+  // 对少见的非对象原始类型做明确处理，避免对对象使用默认的字符串化（'[object Object]'）
+  if (typeof value === 'symbol') return value.toString();
+  if (typeof value === 'bigint') return value.toString();
+  if (typeof value === 'function') return '[Function]';
+
+  // 最后回退到更明确的对象标签，而不是依赖 Object 的默认字符串化
+  try {
+    return Object.prototype.toString.call(value);
+  } catch {
+    return '[Unserializable]';
+  }
 };
 
 const registerIpcHandler = <T extends unknown[]>(
@@ -135,7 +145,7 @@ function createWindow(): void {
 
   // 监听渲染进程的异常，以便诊断崩溃或未响应的情况
   mainWindow.webContents.on('render-process-gone', (_event, details) => {
-    logger.error('Renderer process gone:', details);
+    logger.error('Renderer process gone', { details });
   });
 
   mainWindow.on('unresponsive', () => {

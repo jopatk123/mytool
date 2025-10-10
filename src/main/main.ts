@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, protocol } from 'electron';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { AppErrorCode, toIPCErrorResponse, toIPCSuccessResponse, toReportableError } from '../shared/errors';
@@ -365,10 +365,35 @@ async function initialize(): Promise<void> {
   }
 }
 
+/**
+ * 注册本地文件协议，用于在渲染进程中安全加载本地图片
+ */
+function registerLocalFileProtocol(): void {
+  protocol.registerFileProtocol('local-file', (request, callback) => {
+    try {
+      // 移除 'local-file://' 前缀，获取实际文件路径
+      const url = request.url.substring('local-file://'.length);
+      const decodedPath = decodeURIComponent(url);
+      
+      logger.debug('Loading local file via protocol', { url, decodedPath });
+      
+      callback({ path: decodedPath });
+    } catch (error) {
+      logger.error('Failed to load local file', { url: request.url, error });
+      callback({ error: -2 }); // net::FAILED
+    }
+  });
+  
+  logger.success('Registered local-file:// protocol');
+}
+
 // 应用生命周期
 void app
   .whenReady()
   .then(async () => {
+    // 注册自定义协议以安全加载本地文件
+    registerLocalFileProtocol();
+    
     await observability.initialize(app);
     await initialize();
     createWindow();

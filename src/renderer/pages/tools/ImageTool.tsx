@@ -185,7 +185,10 @@ function ImageTool() {
         </Space>
       </Card>
 
-      <ImageGrid assets={assets} selectedAssetIds={selectedAssetIds} onToggle={toggleAsset} />
+      {/* 图片列表和预览区域 */}
+      <Card bodyStyle={{ padding: '16px' }}>
+        <ImageGrid assets={assets} selectedAssetIds={selectedAssetIds} onToggle={toggleAsset} />
+      </Card>
 
       <OperationPanel
         disabled={assets.length === 0 || scanning}

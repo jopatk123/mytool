@@ -1,6 +1,5 @@
 import { promises as fs, Dirent, Stats } from 'node:fs';
 import * as path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../shared/utils/logger';
 import type { ImageAsset, ImageScanOptions, ImageScanResult } from '../../../shared/types';
@@ -103,11 +102,13 @@ export class DirectoryScanner {
 
         const extension = path.extname(entry.name).toLowerCase();
         const relativePath = path.relative(directory, filePath);
+        // 使用自定义协议 local-file:// 替代 file:// 以便在 Electron 渲染进程中安全加载
+        const fileUrl = `local-file://${filePath}`;
         const asset: ImageAsset = {
           id: buildAssetId(filePath),
           name: entry.name,
           filePath,
-          fileUrl: pathToFileURL(filePath).href,
+          fileUrl,
           size: stat.size,
           mimeType: MIME_BY_EXTENSION[extension] ?? 'image/*',
           extension: extension.slice(1),

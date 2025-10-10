@@ -50,7 +50,8 @@ describe('DirectoryScanner', () => {
     const assetNames = result.assets.map(asset => asset.name).sort();
     expect(assetNames).toEqual(['a.png', 'b.jpg']);
     expect(result.totalFiles).toBeGreaterThanOrEqual(2);
-    expect(result.assets[0].fileUrl.startsWith('file://')).toBe(true);
+    // 修改为检查 local-file:// 协议
+    expect(result.assets[0].fileUrl.startsWith('local-file://')).toBe(true);
   });
 
   it('respects includeSubdirectories flag', async () => {

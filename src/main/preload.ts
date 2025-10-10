@@ -2,7 +2,27 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import { ELECTRON_API_VERSION } from '../shared/constants';
 import { AppError } from '../shared/errors';
-import { IPCChannel, ElectronAPI, RendererErrorPayload, IPCErrorResponse, IPCResponse, ToolConfig, RendererLogPayload, ObservabilitySnapshot, ImageScanRequest, ImageScanResult, ImageJobRequest, ImageJobEvent } from '../shared/types';
+import {
+  IPCChannel,
+  ElectronAPI,
+  RendererErrorPayload,
+  IPCErrorResponse,
+  IPCResponse,
+  ToolConfig,
+  RendererLogPayload,
+  ObservabilitySnapshot,
+  ImageScanRequest,
+  ImageScanResult,
+  ImageJobRequest,
+  ImageJobEvent,
+  FileScanRequest,
+  FileScanResult,
+  FileExportRequest,
+  FileImportResult,
+  FileRenameTask,
+  FileRenameResult,
+  FileDeleteResult,
+} from '../shared/types';
 
 const isIpcResponse = <T>(value: unknown): value is IPCResponse<T> =>
   typeof value === 'object' && value !== null && 'success' in value;
@@ -79,6 +99,20 @@ const electronAPI: ElectronAPI = Object.freeze({
       jobEventListeners.delete(callback);
     };
   },
+
+  // 文件工具
+  scanFiles: (request: FileScanRequest) =>
+    invoke<FileScanResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'scanFiles', ...request }),
+  exportFilesToCSV: (request: FileExportRequest) =>
+    invoke<void>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'exportToCSV', ...request }),
+  importCSV: (filePath: string) =>
+    invoke<FileImportResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'importFromCSV', filePath }),
+  renameFiles: (tasks: FileRenameTask[]) =>
+    invoke<FileRenameResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'renameFiles', tasks }),
+  deleteFiles: (filePaths: string[]) =>
+    invoke<FileDeleteResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'deleteFiles', filePaths }),
+
+  // 错误和日志
   reportError: (errorInfo: RendererErrorPayload) => ipcRenderer.send(IPCChannel.RENDERER_ERROR, errorInfo),
   reportLog: (entry: RendererLogPayload) => ipcRenderer.send(IPCChannel.LOG_EVENT, entry),
   getObservabilitySnapshot: () => invoke<ObservabilitySnapshot>(IPCChannel.OBSERVABILITY_GET_SNAPSHOT),

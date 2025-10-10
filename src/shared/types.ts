@@ -28,6 +28,34 @@ export enum ToolCategory {
 }
 
 /**
+ * preload 暴露给渲染进程的 API（只读）
+ */
+export interface ElectronAPI {
+  readonly version: string;
+  windowMinimize(): void;
+  windowMaximize(): void;
+  windowClose(): void;
+  getToolList(): Promise<ToolConfig[]>;
+  executeTool(toolId: string, params: unknown): Promise<unknown>;
+  selectFile(options?: OpenDialogOptions): Promise<string[] | null>;
+  saveFile(options?: SaveDialogOptions): Promise<string | null>;
+  scanImages(request: ImageScanRequest): Promise<ImageScanResult>;
+  startImageJob(request: ImageJobRequest): Promise<{ jobId: string }>;
+  cancelImageJob(jobId: string): Promise<void>;
+  onImageJobEvent(callback: (event: ImageJobEvent) => void): () => void;
+  // 文件工具相关
+  scanFiles(request: FileScanRequest): Promise<FileScanResult>;
+  exportFilesToCSV(request: FileExportRequest): Promise<void>;
+  importCSV(filePath: string): Promise<FileImportResult>;
+  renameFiles(tasks: FileRenameTask[]): Promise<FileRenameResult[]>;
+  deleteFiles(filePaths: string[]): Promise<FileDeleteResult[]>;
+  // 错误和日志
+  reportError(payload: RendererErrorPayload): void;
+  reportLog(entry: RendererLogPayload): void;
+  getObservabilitySnapshot(): Promise<ObservabilitySnapshot>;
+}
+
+/**
  * 工具基础接口
  */
 export interface ToolExecuteContext {
@@ -204,11 +232,118 @@ export type ImageJobEvent =
  * 文件信息
  */
 export interface FileInfo {
+  id: string;
   name: string;
   path: string;
+  relativePath: string;
   size: number;
-  type: string;
+  extension: string;
   lastModified: number;
+  directory: string;
+}
+
+/**
+ * 文件过滤选项
+ */
+export interface FileFilterOptions {
+  // 大小过滤
+  enableSizeFilter?: boolean;
+  minSize?: number; // 字节
+  maxSize?: number; // 字节
+  
+  // 后缀过滤
+  enableExtensionFilter?: boolean;
+  extensions?: string[]; // ['.jpg', '.png']
+  
+  // 文件名关键字过滤
+  enableNameFilter?: boolean;
+  nameKeyword?: string;
+}
+
+/**
+ * 文件扫描选项
+ */
+export interface FileScanOptions {
+  includeSubdirectories?: boolean;
+  filter?: FileFilterOptions;
+  /**
+   * 限制同时进行的文件系统操作数量，避免海量文件导致句柄耗尽
+   */
+  maxConcurrency?: number;
+  /**
+   * 是否跟随符号链接继续扫描
+   */
+  followSymlinks?: boolean;
+  /**
+   * 是否跳过隐藏文件/文件夹（以点开头）
+   */
+  excludeHidden?: boolean;
+}
+
+/**
+ * 文件扫描请求
+ */
+export interface FileScanRequest {
+  directory: string;
+  options?: FileScanOptions;
+}
+
+/**
+ * 文件扫描结果
+ */
+export interface FileScanResult {
+  scanId: string;
+  directory: string;
+  files: FileInfo[];
+  totalFiles: number;
+  filteredFiles: number;
+}
+
+/**
+ * 文件重命名任务
+ */
+export interface FileRenameTask {
+  id: string;
+  originalPath: string;
+  originalName: string;
+  newName: string;
+}
+
+/**
+ * 文件重命名结果
+ */
+export interface FileRenameResult {
+  id: string;
+  success: boolean;
+  originalPath: string;
+  newPath?: string;
+  error?: string;
+}
+
+/**
+ * 文件删除结果
+ */
+export interface FileDeleteResult {
+  id: string;
+  success: boolean;
+  path: string;
+  error?: string;
+}
+
+/**
+ * CSV 导出请求
+ */
+export interface FileExportRequest {
+  files: FileInfo[];
+  outputPath: string;
+}
+
+/**
+ * CSV 导入结果
+ */
+export interface FileImportResult {
+  tasks: FileRenameTask[];
+  invalidRows: number;
 }
 
 /**

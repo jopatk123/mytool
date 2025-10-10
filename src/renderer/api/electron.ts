@@ -46,6 +46,12 @@ const electronAPI: ElectronAPI = Object.freeze({
   startImageJob: (request: Parameters<ElectronAPI['startImageJob']>[0]) => getRaw().startImageJob(request),
   cancelImageJob: (jobId: Parameters<ElectronAPI['cancelImageJob']>[0]) => getRaw().cancelImageJob(jobId),
   onImageJobEvent: (callback: Parameters<ElectronAPI['onImageJobEvent']>[0]) => getRaw().onImageJobEvent(callback),
+  scanFiles: (request: Parameters<ElectronAPI['scanFiles']>[0]) => getRaw().scanFiles(request),
+  exportFilesToCSV: (request: Parameters<ElectronAPI['exportFilesToCSV']>[0]) =>
+    getRaw().exportFilesToCSV(request),
+  importCSV: (filePath: Parameters<ElectronAPI['importCSV']>[0]) => getRaw().importCSV(filePath),
+  renameFiles: (tasks: Parameters<ElectronAPI['renameFiles']>[0]) => getRaw().renameFiles(tasks),
+  deleteFiles: (paths: Parameters<ElectronAPI['deleteFiles']>[0]) => getRaw().deleteFiles(paths),
   reportError: (payload: Parameters<ElectronAPI['reportError']>[0]) => getRaw().reportError(payload),
   reportLog: (entry: RendererLogPayload) => getRaw().reportLog(entry),
   getObservabilitySnapshot: () => getRaw().getObservabilitySnapshot(),

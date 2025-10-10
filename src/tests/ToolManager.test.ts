@@ -35,7 +35,8 @@ describe('ToolManager', () => {
     
     const fileTool = tools.find(t => t.id === 'file-tool');
     expect(fileTool).toBeDefined();
-  expect(fileTool?.name).toBe('文件工具 (占位)');
+    expect(fileTool?.name).toBe('文件工具');
+    expect(fileTool?.enabled).toBe(true);
   });
 
   it('should cleanup without errors', async () => {

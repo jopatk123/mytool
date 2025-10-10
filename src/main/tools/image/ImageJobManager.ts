@@ -1,8 +1,5 @@
-import { createReadStream, promises as fs } from 'node:fs';
 import * as path from 'node:path';
-import { randomUUID, createHash } from 'node:crypto';
-import { tmpdir } from 'node:os';
-import sharp from 'sharp';
+import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../shared/utils/logger';
 import type {
   ImageAsset,
@@ -16,6 +13,8 @@ import type {
 } from '../../../shared/types';
 import { IPCChannel } from '../../../shared/types';
 import type { WebContents } from 'electron';
+import { ImageAssetProcessor } from './processing/ImageAssetProcessor';
+import { JobOptions } from './job/JobOptions';
 
 const DEFAULT_CONCURRENCY = 3;
 const MAX_CONCURRENCY = 8;
@@ -26,16 +25,6 @@ interface StartJobOptions {
   request: ImageJobRequest;
   assets: ImageAsset[];
   sender?: WebContents;
-}
-
-type HashRenameOperation = Extract<ImageBatchOperation, { type: 'hashRename' }>;
-
-interface JobOptions {
-  concurrency: number;
-  outputDirectory: string | null;
-  overwrite: boolean;
-  preserveMetadata: boolean;
-  dryRun: boolean;
 }
 
 interface ActiveJob {
@@ -57,99 +46,6 @@ interface ActiveJob {
 const ensureWithin = (value: number, min: number, max: number): number => {
   if (Number.isNaN(value)) return min;
   return Math.max(min, Math.min(max, value));
-};
-
-const ensureDirectory = async (targetDir: string): Promise<void> => {
-  await fs.mkdir(targetDir, { recursive: true });
-};
-
-const moveFileSafe = async (tempPath: string, destination: string, overwrite: boolean): Promise<void> => {
-  await ensureDirectory(path.dirname(destination));
-
-  if (!overwrite) {
-    const exists = await fileExists(destination);
-    if (exists) {
-      throw new Error(`目标文件已存在: ${destination}`);
-    }
-  }
-
-  await fs.rename(tempPath, destination);
-};
-
-const fileExists = async (filePath: string): Promise<boolean> => {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const computeHash = async (filePath: string, algorithm: HashRenameOperation['algorithm'] = 'sha256'): Promise<string> => {
-  const hash = createHash(algorithm ?? 'sha256');
-  return await new Promise<string>((resolve, reject) => {
-    const stream = createReadStream(filePath);
-    stream.on('data', chunk => hash.update(chunk));
-    stream.on('error', reject);
-    stream.on('end', () => resolve(hash.digest('hex')));
-  });
-};
-
-const clampQuality = (value: number | undefined, fallback = 80): number => {
-  if (typeof value !== 'number') return fallback;
-  return ensureWithin(Math.round(value), 1, 100);
-};
-
-const createTempFilePath = (jobId: string, extension: string): string => {
-  const normalized = extension.startsWith('.') ? extension : `.${extension}`;
-  const safeExt = normalized === '.' ? '' : normalized;
-  return path.join(tmpdir(), `${jobId}-${randomUUID()}${safeExt}`);
-};
-
-const guessExtension = (format: string | undefined, fallback: string): string => {
-  if (!format) return fallback;
-  return format.toLowerCase();
-};
-
-const normalizeSharpFormat = (format: string): keyof sharp.FormatEnum | null => {
-  const lower = format.toLowerCase();
-  // 将常见的文件扩展名映射到 Sharp 支持的格式
-  if (lower === 'jpg') return 'jpeg';
-  if (lower === 'tif') return 'tiff';
-  // SVG 不支持
-  if (lower === 'svg') return null;
-  if (lower in sharp.format) {
-    return lower as keyof sharp.FormatEnum;
-  }
-  return null;
-};
-
-const buildOutputPath = (asset: ImageAsset, job: ActiveJob, extension: string): string => {
-  const baseDir = job.options.outputDirectory ? path.resolve(job.options.outputDirectory) : path.dirname(asset.filePath);
-  const relativeDir = job.options.outputDirectory ? path.dirname(asset.relativePath) : '';
-  const directory = job.options.outputDirectory ? path.join(baseDir, relativeDir) : baseDir;
-  const fileName = path.basename(asset.filePath, path.extname(asset.filePath));
-  const finalExt = extension.startsWith('.') ? extension : `.${extension}`;
-  return path.join(directory, `${fileName}${finalExt}`);
-};
-
-const generateUniquePath = async (filePath: string): Promise<string> => {
-  if (!(await fileExists(filePath))) {
-    return filePath;
-  }
-
-  const dir = path.dirname(filePath);
-  const ext = path.extname(filePath);
-  const name = path.basename(filePath, ext);
-
-  for (let i = 1; i < 1000; i += 1) {
-    const candidate = path.join(dir, `${name}_${i}${ext}`);
-    if (!(await fileExists(candidate))) {
-      return candidate;
-    }
-  }
-
-  throw new Error('无法为文件生成唯一名称');
 };
 
 export class ImageJobManager {
@@ -211,10 +107,17 @@ export class ImageJobManager {
   }
 
   private async processJob(job: ActiveJob): Promise<void> {
-  const { concurrency } = job.options;
-  const queue = [...job.assets];
+    const { concurrency } = job.options;
+    const queue = [...job.assets];
 
-  const workers: Array<Promise<void>> = Array.from({ length: concurrency }, () => this.worker(job, queue));
+    const workers: Array<Promise<void>> = Array.from({ length: concurrency }, () => {
+      const processor = new ImageAssetProcessor({
+        jobId: job.id,
+        options: job.options,
+        operations: job.operations,
+      });
+      return this.worker(job, queue, processor);
+    });
     await Promise.all(workers);
 
     if (job.cancelled) {
@@ -226,7 +129,7 @@ export class ImageJobManager {
     this.jobs.delete(job.id);
   }
 
-  private async worker(job: ActiveJob, queue: ImageAsset[]): Promise<void> {
+  private async worker(job: ActiveJob, queue: ImageAsset[], processor: ImageAssetProcessor): Promise<void> {
     while (queue.length > 0) {
       if (job.abortController.signal.aborted) {
         return;
@@ -243,7 +146,7 @@ export class ImageJobManager {
       });
 
       try {
-        const result = await this.processAsset(job, asset);
+        const result = await processor.process(asset);
         job.completed += 1;
         job.results.push(result);
         this.emit(job.sender, { type: 'item', jobId: job.id, result });
@@ -285,119 +188,6 @@ export class ImageJobManager {
     };
   }
 
-  private async processAsset(job: ActiveJob, asset: ImageAsset): Promise<ImageJobItemResult> {
-    if (job.options.dryRun) {
-      return {
-        assetId: asset.id,
-        originalPath: asset.filePath,
-        outputPath: asset.filePath,
-        operationsApplied: job.operations.map(op => op.type),
-      };
-    }
-
-    let workingPath = asset.filePath;
-    const warnings: string[] = [];
-    const operationsApplied: ImageBatchOperation['type'][] = [];
-
-    const resizeOp = job.operations.find(op => op.type === 'resize');
-    const compressOp = job.operations.find(op => op.type === 'compress');
-    const hashOp = job.operations.find(op => op.type === 'hashRename');
-
-    // 确定输出格式：如果是覆盖模式，保持原扩展名；否则使用目标格式
-    let finalExtension = asset.extension;
-    let targetFormat: string = asset.extension;
-    
-    if (compressOp?.type === 'compress') {
-      targetFormat = guessExtension(compressOp.targetFormat, finalExtension);
-      // 只有在非覆盖模式或指定了输出目录时才改变扩展名
-      if (!job.options.overwrite || job.options.outputDirectory) {
-        finalExtension = targetFormat;
-      }
-    }
-
-    if (resizeOp || compressOp) {
-      const pipeline = sharp(asset.filePath, { failOn: 'none' });
-
-      if (resizeOp?.type === 'resize') {
-        pipeline.resize({
-          width: resizeOp.width,
-          height: resizeOp.height,
-          fit: resizeOp.fit ?? 'cover',
-          withoutEnlargement: resizeOp.withoutEnlargement ?? true,
-          fastShrinkOnLoad: true,
-        });
-        operationsApplied.push('resize');
-      }
-
-      if (compressOp?.type === 'compress') {
-        const quality = clampQuality(compressOp.quality);
-        // 使用目标格式进行压缩
-        const sharpFormat = normalizeSharpFormat(targetFormat) ?? 'jpeg';
-
-        switch (sharpFormat) {
-          case 'jpeg':
-            pipeline.jpeg({ quality, mozjpeg: true });
-            break;
-          case 'png':
-            pipeline.png({ compressionLevel: Math.round((9 * (100 - quality)) / 100) });
-            break;
-          case 'webp':
-            pipeline.webp({ quality });
-            break;
-          default:
-            pipeline.toFormat(sharpFormat);
-            warnings.push(`格式 ${sharpFormat} 不支持自定义压缩质量，已使用默认配置`);
-            break;
-        }
-
-        operationsApplied.push('compress');
-      }
-
-      const tempPath = createTempFilePath(job.id, targetFormat);
-      await ensureDirectory(path.dirname(tempPath));
-      await pipeline.toFile(tempPath);
-      workingPath = tempPath;
-    }
-
-    // 使用 finalExtension 构建输出路径（覆盖模式下保持原扩展名）
-    let outputPath = buildOutputPath(asset, job, finalExtension);
-
-    if (!job.options.overwrite) {
-      outputPath = await generateUniquePath(outputPath);
-    }
-
-    if (workingPath !== asset.filePath) {
-      await moveFileSafe(workingPath, outputPath, job.options.overwrite);
-    } else if (outputPath !== asset.filePath) {
-      // 仅复制到目标目录
-      await ensureDirectory(path.dirname(outputPath));
-      await fs.copyFile(asset.filePath, outputPath);
-    }
-
-    let hash: string | undefined;
-    if (hashOp?.type === 'hashRename') {
-      hash = await computeHash(outputPath, hashOp.algorithm);
-      const nextName = hashOp.prefix ? `${hashOp.prefix}${hash}` : hash;
-      // 在哈希重命名时，始终使用当前文件的扩展名
-      const currentExt = path.extname(outputPath) || `.${finalExtension}`;
-      const ext = hashOp.keepExtension === false ? '' : currentExt;
-      const finalName = `${nextName}${ext}`;
-      const destination = path.join(path.dirname(outputPath), finalName);
-      const targetPath = job.options.overwrite ? destination : await generateUniquePath(destination);
-      await moveOrRename(outputPath, targetPath, job.options.overwrite);
-      outputPath = targetPath;
-      operationsApplied.push('hashRename');
-    }
-
-    return {
-      assetId: asset.id,
-      originalPath: asset.filePath,
-      outputPath,
-      operationsApplied,
-      hash,
-      warnings: warnings.length > 0 ? warnings : undefined,
-    };
-  }
 
   private emit(sender: WebContents | undefined, event: ImageJobEvent): void {
     if (!sender || sender.isDestroyed()) {
@@ -428,12 +218,3 @@ export class ImageJobManager {
   }
 }
 
-const moveOrRename = async (source: string, destination: string, overwrite: boolean): Promise<void> => {
-  await ensureDirectory(path.dirname(destination));
-
-  if (!overwrite && (await fileExists(destination))) {
-    throw new Error(`目标文件已存在: ${destination}`);
-  }
-
-  await fs.rename(source, destination);
-};

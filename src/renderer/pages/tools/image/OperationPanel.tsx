@@ -13,7 +13,9 @@ import {
   Typography,
   message,
 } from 'antd';
+import { FolderOpenOutlined } from '@ant-design/icons';
 import type { ImageBatchOperation, ImageJobRequest } from '@shared/types';
+import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 
 type HashRenameOperation = Extract<ImageBatchOperation, { type: 'hashRename' }>;
 
@@ -28,6 +30,8 @@ interface OperationPanelProps {
 }
 
 export function OperationPanel({ disabled, running, assetCount, onRun, onCancel }: OperationPanelProps) {
+  const electronAPI = useElectronAPI();
+  
   const [enableHashRename, setEnableHashRename] = useState(true);
   const [hashAlgorithm, setHashAlgorithm] = useState<HashRenameOperation['algorithm']>('sha256');
   const [hashPrefix, setHashPrefix] = useState('');
@@ -44,6 +48,7 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
   const [compressFormat, setCompressFormat] = useState<'jpeg' | 'png' | 'webp'>('jpeg');
 
   const [overwrite, setOverwrite] = useState(false);
+  const [outputDirectory, setOutputDirectory] = useState<string | null>(null);
 
   const canRun = useMemo(() => {
     const hasOperation = enableHashRename || enableResize || enableCompress;
@@ -51,6 +56,23 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
     if (enableResize && !resizeWidth && !resizeHeight) return false;
     return true;
   }, [enableHashRename, enableResize, enableCompress, resizeWidth, resizeHeight]);
+
+  const handleSelectOutputDirectory = async () => {
+    try {
+      const result = await electronAPI.selectFile({ properties: ['openDirectory'] });
+      if (result && result.length > 0) {
+        setOutputDirectory(result[0]);
+        message.success(`已选择输出目录: ${result[0]}`);
+      }
+    } catch {
+      message.error('选择输出目录失败');
+    }
+  };
+
+  const handleClearOutputDirectory = () => {
+    setOutputDirectory(null);
+    message.info('已清除输出目录设置');
+  };
 
   const buildOperations = (): ImageBatchOperation[] => {
     const operations: ImageBatchOperation[] = [];
@@ -91,11 +113,23 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
       return;
     }
 
+    // 检查哈希重命名与覆盖的冲突
+    if (enableHashRename && overwrite) {
+      message.warning('哈希重命名会改变文件名，无法覆盖原文件。建议取消勾选"覆盖原文件"或禁用哈希重命名。');
+      return;
+    }
+
+    // 如果未勾选覆盖且未选择输出目录，提示用户
+    if (!overwrite && !outputDirectory) {
+      message.info('将在原目录生成新文件');
+    }
+
     const operations = buildOperations();
     onRun({
       operations,
       options: {
         overwrite,
+        outputDirectory,
       },
     });
   };
@@ -212,6 +246,36 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
             <Switch checked={overwrite} onChange={setOverwrite} />
             <Text>允许覆盖原文件（请谨慎操作）</Text>
           </Space>
+
+          {!overwrite && (
+            <Space direction="vertical" size="small" style={{ width: '100%' }}>
+              <Text type="secondary">输出目录（可选）：</Text>
+              <Space style={{ width: '100%' }}>
+                <Button 
+                  icon={<FolderOpenOutlined />} 
+                  onClick={handleSelectOutputDirectory}
+                  disabled={overwrite}
+                >
+                  选择输出目录
+                </Button>
+                {outputDirectory && (
+                  <Button onClick={handleClearOutputDirectory}>
+                    清除
+                  </Button>
+                )}
+              </Space>
+              {outputDirectory && (
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  当前输出目录: {outputDirectory}
+                </Text>
+              )}
+              {!outputDirectory && (
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  未选择输出目录时，将在原图片所在目录生成新文件
+                </Text>
+              )}
+            </Space>
+          )}
 
           <Space>
             <Button type="primary" onClick={handleRun} disabled={disabled || running || !canRun} loading={running}>

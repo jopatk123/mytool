@@ -113,8 +113,10 @@ const guessExtension = (format: string | undefined, fallback: string): string =>
 
 const normalizeSharpFormat = (format: string): keyof sharp.FormatEnum | null => {
   const lower = format.toLowerCase();
+  // 将常见的文件扩展名映射到 Sharp 支持的格式
   if (lower === 'jpg') return 'jpeg';
   if (lower === 'tif') return 'tiff';
+  // SVG 不支持
   if (lower === 'svg') return null;
   if (lower in sharp.format) {
     return lower as keyof sharp.FormatEnum;
@@ -301,9 +303,16 @@ export class ImageJobManager {
     const compressOp = job.operations.find(op => op.type === 'compress');
     const hashOp = job.operations.find(op => op.type === 'hashRename');
 
+    // 确定输出格式：如果是覆盖模式，保持原扩展名；否则使用目标格式
     let finalExtension = asset.extension;
+    let targetFormat: string = asset.extension;
+    
     if (compressOp?.type === 'compress') {
-      finalExtension = guessExtension(compressOp.targetFormat, finalExtension);
+      targetFormat = guessExtension(compressOp.targetFormat, finalExtension);
+      // 只有在非覆盖模式或指定了输出目录时才改变扩展名
+      if (!job.options.overwrite || job.options.outputDirectory) {
+        finalExtension = targetFormat;
+      }
     }
 
     if (resizeOp || compressOp) {
@@ -322,10 +331,10 @@ export class ImageJobManager {
 
       if (compressOp?.type === 'compress') {
         const quality = clampQuality(compressOp.quality);
-        const rawFormat = compressOp.targetFormat ?? finalExtension;
-        const targetFormat = normalizeSharpFormat(rawFormat) ?? 'jpeg';
+        // 使用目标格式进行压缩
+        const sharpFormat = normalizeSharpFormat(targetFormat) ?? 'jpeg';
 
-        switch (targetFormat) {
+        switch (sharpFormat) {
           case 'jpeg':
             pipeline.jpeg({ quality, mozjpeg: true });
             break;
@@ -336,21 +345,21 @@ export class ImageJobManager {
             pipeline.webp({ quality });
             break;
           default:
-            pipeline.toFormat(targetFormat);
-            warnings.push(`格式 ${targetFormat} 不支持自定义压缩质量，已使用默认配置`);
+            pipeline.toFormat(sharpFormat);
+            warnings.push(`格式 ${sharpFormat} 不支持自定义压缩质量，已使用默认配置`);
             break;
         }
 
-        finalExtension = targetFormat;
         operationsApplied.push('compress');
       }
 
-      const tempPath = createTempFilePath(job.id, finalExtension);
+      const tempPath = createTempFilePath(job.id, targetFormat);
       await ensureDirectory(path.dirname(tempPath));
       await pipeline.toFile(tempPath);
       workingPath = tempPath;
     }
 
+    // 使用 finalExtension 构建输出路径（覆盖模式下保持原扩展名）
     let outputPath = buildOutputPath(asset, job, finalExtension);
 
     if (!job.options.overwrite) {
@@ -369,7 +378,9 @@ export class ImageJobManager {
     if (hashOp?.type === 'hashRename') {
       hash = await computeHash(outputPath, hashOp.algorithm);
       const nextName = hashOp.prefix ? `${hashOp.prefix}${hash}` : hash;
-      const ext = hashOp.keepExtension === false ? '' : path.extname(outputPath) || `.${finalExtension}`;
+      // 在哈希重命名时，始终使用当前文件的扩展名
+      const currentExt = path.extname(outputPath) || `.${finalExtension}`;
+      const ext = hashOp.keepExtension === false ? '' : currentExt;
       const finalName = `${nextName}${ext}`;
       const destination = path.join(path.dirname(outputPath), finalName);
       const targetPath = job.options.overwrite ? destination : await generateUniquePath(destination);

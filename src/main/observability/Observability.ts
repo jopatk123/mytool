@@ -1,8 +1,8 @@
 import type { App } from 'electron';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { toReportableError } from '../../shared/errors.js';
-import type { LogEntry, LogLevel } from '../../shared/utils/logger.js';
+import { toReportableError } from '../../shared/errors';
+import type { LogEntry, LogLevel } from '../../shared/utils/logger';
 
 export type LogOrigin = 'main' | 'renderer';
 

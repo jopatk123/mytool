@@ -2,8 +2,8 @@ import { promises as fs, Dirent, Stats } from 'node:fs';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createLogger } from '../../../shared/utils/logger.js';
-import type { ImageAsset, ImageScanOptions, ImageScanResult } from '../../../shared/types.js';
+import { createLogger } from '../../../shared/utils/logger';
+import type { ImageAsset, ImageScanOptions, ImageScanResult } from '../../../shared/types';
 
 const logger = createLogger('DirectoryScanner');
 

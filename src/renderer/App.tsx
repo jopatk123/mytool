@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { App as AntdApp } from 'antd';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import ImageTool from './pages/tools/ImageTool';
@@ -36,7 +37,11 @@ function App() {
     routerOptions
   );
 
-  return <RouterProvider router={router} />;
+  return (
+    <AntdApp>
+      <RouterProvider router={router} />
+    </AntdApp>
+  );
 }
 
 export default App;

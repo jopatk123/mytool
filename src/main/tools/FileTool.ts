@@ -1,6 +1,6 @@
-import { AppError, AppErrorCode } from '../../shared/errors.js';
-import { ITool, ToolCategory, ToolConfig } from '../../shared/types.js';
-import { createLogger } from '../../shared/utils/logger.js';
+import { AppError, AppErrorCode } from '../../shared/errors';
+import { ITool, ToolCategory, ToolConfig } from '../../shared/types';
+import { createLogger } from '../../shared/utils/logger';
 
 const logger = createLogger('FileTool');
 

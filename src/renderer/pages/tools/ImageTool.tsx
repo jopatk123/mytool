@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Card, Space, Typography, message } from 'antd';
+import { App, Button, Card, Space, Typography } from 'antd';
 import { createLogger } from '@shared/utils/logger';
 import type { ImageJobRequest } from '@shared/types';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
@@ -14,6 +14,7 @@ const { Title, Text } = Typography;
 const logger = createLogger('ImageToolPage');
 
 function ImageTool() {
+  const { message } = App.useApp();
   const electronAPI = useElectronAPI();
   const [scanning, setScanning] = useState(false);
 
@@ -101,7 +102,7 @@ function ImageTool() {
     } finally {
       setScanning(false);
     }
-  }, [electronAPI, includeSubdirectories, setDirectory, setScanResult]);
+  }, [electronAPI, includeSubdirectories, setDirectory, setScanResult, message]);
 
   const handleRunJob = useCallback(async (payload: { operations: ImageJobRequest['operations']; options: ImageJobRequest['options'] }) => {
     if (!scanId) {
@@ -132,7 +133,7 @@ function ImageTool() {
       logger.error('Start image job failed', error);
       message.error('启动批处理失败，请稍后重试');
     }
-  }, [electronAPI, scanId, selectedAssetIds, setJobId]);
+  }, [electronAPI, scanId, selectedAssetIds, setJobId, message]);
 
   const handleCancelJob = useCallback(async () => {
     if (!jobId) return;
@@ -143,7 +144,7 @@ function ImageTool() {
       logger.error('Cancel image job failed', error);
       message.error('取消任务失败');
     }
-  }, [electronAPI, jobId]);
+  }, [electronAPI, jobId, message]);
 
   const isRunning = useMemo(() => status === 'running', [status]);
 

@@ -1,8 +1,8 @@
-import { AppError, AppErrorCode } from '../../shared/errors.js';
-import { ITool, ToolConfig, ToolExecuteContext } from '../../shared/types.js';
-import { createLogger } from '../../shared/utils/logger.js';
-import { ImageTool } from './ImageTool.js';
-import { FileTool } from './FileTool.js';
+import { AppError, AppErrorCode } from '../../shared/errors';
+import { ITool, ToolConfig, ToolExecuteContext } from '../../shared/types';
+import { createLogger } from '../../shared/utils/logger';
+import { ImageTool } from './ImageTool';
+import { FileTool } from './FileTool';
 
 const logger = createLogger('ToolManager');
 

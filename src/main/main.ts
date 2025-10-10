@@ -1,12 +1,13 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
-import { AppErrorCode, toIPCErrorResponse, toIPCSuccessResponse, toReportableError } from '../shared/errors.js';
-import { IPCChannel } from '../shared/types.js';
-import type { ImageScanRequest, ImageJobRequest } from '../shared/types.js';
-import { addLogListener, createLogger } from '../shared/utils/logger.js';
-import type { LogEntry } from '../shared/utils/logger.js';
-import { observability } from './observability/Observability.js';
-import { ToolManager } from './tools/ToolManager.js';
+import { promises as fs } from 'fs';
+import { AppErrorCode, toIPCErrorResponse, toIPCSuccessResponse, toReportableError } from '../shared/errors';
+import { IPCChannel } from '../shared/types';
+import type { ImageScanRequest, ImageJobRequest } from '../shared/types';
+import { addLogListener, createLogger } from '../shared/utils/logger';
+import type { LogEntry } from '../shared/utils/logger';
+import { observability } from './observability/Observability';
+import { ToolManager } from './tools/ToolManager';
 
 const logger = createLogger('Main');
 
@@ -121,6 +122,53 @@ const registerIpcHandler = <T extends unknown[]>(
 };
 
 /**
+ * 设置浏览器控制台日志捕获
+ * 在开发模式下，将渲染进程的控制台输出保存到项目根目录
+ */
+function setupConsoleLogger(window: BrowserWindow): void {
+  const logFilePath = path.join(app.getAppPath(), `console-${Date.now()}.log`);
+  let logStream: fs.FileHandle | null = null;
+
+  // 创建日志文件
+  fs.open(logFilePath, 'w')
+    .then(handle => {
+      logStream = handle;
+      logger.info(`Browser console log will be saved to: ${logFilePath}`);
+      return handle.write(`=== Browser Console Log - ${new Date().toISOString()} ===\n\n`);
+    })
+    .catch(err => {
+      logger.warn('Failed to create console log file', { err });
+    });
+
+  // 监听控制台消息
+  window.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    if (!logStream) return;
+
+    const levelNames = ['log', 'warning', 'error', 'debug', 'info'];
+    const levelName = levelNames[level] || 'log';
+    const timestamp = new Date().toISOString();
+    
+    let logEntry = `[${timestamp}] [${levelName.toUpperCase()}] ${message}\n`;
+    if (sourceId && line) {
+      logEntry += `  at ${sourceId}:${line}\n`;
+    }
+    
+    // 异步写入，不阻塞事件处理
+    void logStream.write(logEntry);
+  });
+
+  // 窗口关闭时关闭日志文件
+  window.on('closed', () => {
+    if (logStream) {
+      logStream.close().catch(err => {
+        logger.warn('Failed to close console log file', { err });
+      });
+      logStream = null;
+    }
+  });
+}
+
+/**
  * 创建主窗口
  */
 function createWindow(): void {
@@ -153,6 +201,11 @@ function createWindow(): void {
   mainWindow.webContents.on('crashed', (event, killed) => {
     logger.error('Renderer process crashed', { event, killed });
   });
+
+  // 在开发模式下捕获浏览器控制台日志并保存到文件
+  if (process.env.NODE_ENV === 'development') {
+    setupConsoleLogger(mainWindow);
+  }
 
   // 加载页面
   if (process.env.NODE_ENV === 'development') {

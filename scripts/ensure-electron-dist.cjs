@@ -122,6 +122,37 @@ const runTscBuild = (forceEmit) => {
   return true;
 };
 
+const bundlePreload = (isDev) => {
+  banner('Bundling preload script with esbuild');
+  
+  const nodeBin = process.platform === 'win32' ? 'node.exe' : 'node';
+  const bundleScript = path.join(__dirname, 'bundle-preload.cjs');
+  
+  const args = [bundleScript];
+  if (isDev) {
+    args.push('--dev');
+  }
+  
+  const result = spawnSync(nodeBin, args, {
+    cwd: projectRoot,
+    stdio: 'inherit'
+  });
+  
+  if (result.error) {
+    console.error('[ensure-electron-dist] Failed to bundle preload script:', result.error);
+    process.exitCode = result.status ?? 1;
+    return false;
+  }
+  
+  if (result.status !== 0) {
+    console.error(`[ensure-electron-dist] Preload bundler exited with code ${result.status}`);
+    process.exitCode = result.status;
+    return false;
+  }
+  
+  return true;
+};
+
 const verifyOutputs = () => {
   const missing = requiredOutputs.filter((output) => !fs.existsSync(output));
   if (missing.length === 0) {
@@ -137,6 +168,7 @@ const verifyOutputs = () => {
 
 const main = () => {
   const force = process.argv.includes('--force');
+  const isDev = process.env.NODE_ENV === 'development';
 
   ensureDistPackage();
 
@@ -144,6 +176,10 @@ const main = () => {
 
   if (decision.shouldBuild) {
     if (!runTscBuild(decision.forceEmit)) {
+      return;
+    }
+    // After TypeScript build, bundle the preload script
+    if (!bundlePreload(isDev)) {
       return;
     }
   } else {

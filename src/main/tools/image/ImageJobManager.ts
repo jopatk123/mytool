@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import sharp from 'sharp';
-import { createLogger } from '../../../shared/utils/logger.js';
+import { createLogger } from '../../../shared/utils/logger';
 import type {
   ImageAsset,
   ImageBatchOperation,
@@ -13,8 +13,8 @@ import type {
   ImageJobRequest,
   ImageJobSummary,
   ImageJobError,
-} from '../../../shared/types.js';
-import { IPCChannel } from '../../../shared/types.js';
+} from '../../../shared/types';
+import { IPCChannel } from '../../../shared/types';
 import type { WebContents } from 'electron';
 
 const DEFAULT_CONCURRENCY = 3;

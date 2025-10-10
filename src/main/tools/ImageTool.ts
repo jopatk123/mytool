@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { AppError, AppErrorCode } from '../../shared/errors.js';
-import type { ToolExecuteContext } from '../../shared/types.js';
+import { AppError, AppErrorCode } from '../../shared/errors';
+import type { ToolExecuteContext } from '../../shared/types';
 import {
   ITool,
   ToolCategory,
@@ -9,10 +9,10 @@ import {
   ImageScanRequest,
   ImageScanResult,
   ImageJobRequest,
-} from '../../shared/types.js';
-import { createLogger } from '../../shared/utils/logger.js';
-import { DirectoryScanner } from './image/DirectoryScanner.js';
-import { ImageJobManager } from './image/ImageJobManager.js';
+} from '../../shared/types';
+import { createLogger } from '../../shared/utils/logger';
+import { DirectoryScanner } from './image/DirectoryScanner';
+import { ImageJobManager } from './image/ImageJobManager';
 
 const logger = createLogger('ImageTool');
 

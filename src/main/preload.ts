@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
-import { ELECTRON_API_VERSION } from '../shared/constants.js';
-import { AppError } from '../shared/errors.js';
-import { IPCChannel, ElectronAPI, RendererErrorPayload, IPCErrorResponse, IPCResponse, ToolConfig, RendererLogPayload, ObservabilitySnapshot, ImageScanRequest, ImageScanResult, ImageJobRequest, ImageJobEvent } from '../shared/types.js';
+import { ELECTRON_API_VERSION } from '../shared/constants';
+import { AppError } from '../shared/errors';
+import { IPCChannel, ElectronAPI, RendererErrorPayload, IPCErrorResponse, IPCResponse, ToolConfig, RendererLogPayload, ObservabilitySnapshot, ImageScanRequest, ImageScanResult, ImageJobRequest, ImageJobEvent } from '../shared/types';
 
 const isIpcResponse = <T>(value: unknown): value is IPCResponse<T> =>
   typeof value === 'object' && value !== null && 'success' in value;

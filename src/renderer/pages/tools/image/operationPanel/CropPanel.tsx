@@ -1,4 +1,4 @@
-import { Collapse, InputNumber, Space, Switch, Typography } from 'antd';
+import { InputNumber, Space, Switch, Typography } from 'antd';
 
 const { Text } = Typography;
 
@@ -28,51 +28,49 @@ export function CropPanel({
   onRightChange,
 }: CropPanelProps) {
   return (
-    <Collapse.Panel header="裁剪" key="crop">
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        <Switch checked={enabled} onChange={onToggle} />
-        <Text type="secondary">
-          为需要裁剪的方向输入像素值（px），未填写或为 0 的方向将保持不变。
-        </Text>
-        <Space wrap style={{ width: '100%' }}>
-          <Space>
-            <Text>顶部：</Text>
-            <InputNumber
-              min={0}
-              value={top}
-              onChange={(value) => onTopChange(value ?? 0)}
-              disabled={!enabled}
-            />
-          </Space>
-          <Space>
-            <Text>底部：</Text>
-            <InputNumber
-              min={0}
-              value={bottom}
-              onChange={(value) => onBottomChange(value ?? 0)}
-              disabled={!enabled}
-            />
-          </Space>
-          <Space>
-            <Text>左侧：</Text>
-            <InputNumber
-              min={0}
-              value={left}
-              onChange={(value) => onLeftChange(value ?? 0)}
-              disabled={!enabled}
-            />
-          </Space>
-          <Space>
-            <Text>右侧：</Text>
-            <InputNumber
-              min={0}
-              value={right}
-              onChange={(value) => onRightChange(value ?? 0)}
-              disabled={!enabled}
-            />
-          </Space>
+    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+      <Switch checked={enabled} onChange={onToggle} />
+      <Text type="secondary">
+        为需要裁剪的方向输入像素值（px），未填写或为 0 的方向将保持不变。
+      </Text>
+      <Space wrap style={{ width: '100%' }}>
+        <Space>
+          <Text>顶部：</Text>
+          <InputNumber
+            min={0}
+            value={top}
+            onChange={(value) => onTopChange(value ?? 0)}
+            disabled={!enabled}
+          />
+        </Space>
+        <Space>
+          <Text>底部：</Text>
+          <InputNumber
+            min={0}
+            value={bottom}
+            onChange={(value) => onBottomChange(value ?? 0)}
+            disabled={!enabled}
+          />
+        </Space>
+        <Space>
+          <Text>左侧：</Text>
+          <InputNumber
+            min={0}
+            value={left}
+            onChange={(value) => onLeftChange(value ?? 0)}
+            disabled={!enabled}
+          />
+        </Space>
+        <Space>
+          <Text>右侧：</Text>
+          <InputNumber
+            min={0}
+            value={right}
+            onChange={(value) => onRightChange(value ?? 0)}
+            disabled={!enabled}
+          />
         </Space>
       </Space>
-    </Collapse.Panel>
+    </Space>
   );
 }

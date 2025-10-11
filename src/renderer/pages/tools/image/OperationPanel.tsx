@@ -267,60 +267,94 @@ export function OperationPanel({
       }
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Collapse bordered={false} defaultActiveKey={['hash', 'compress', 'rotate']}>
-          {HashPanel({
-            enabled: enableHashRename,
-            onToggle: setEnableHashRename,
-            algorithm: hashAlgorithm,
-            onAlgorithmChange: setHashAlgorithm,
-          })}
-          {ResizePanel({
-            enabled: enableResize,
-            onToggle: setEnableResize,
-            width: resizeWidth,
-            height: resizeHeight,
-            onWidthChange: setResizeWidth,
-            onHeightChange: setResizeHeight,
-            fit: resizeFit,
-            onFitChange: (value) => setResizeFit(value),
-            withoutEnlargement: preventEnlarge,
-            onWithoutEnlargementChange: setPreventEnlarge,
-          })}
-          {CropPanel({
-            enabled: enableCrop,
-            onToggle: setEnableCrop,
-            top: cropTop,
-            bottom: cropBottom,
-            left: cropLeft,
-            right: cropRight,
-            onTopChange: (value) => setCropTop(clampCropInput(value)),
-            onBottomChange: (value) => setCropBottom(clampCropInput(value)),
-            onLeftChange: (value) => setCropLeft(clampCropInput(value)),
-            onRightChange: (value) => setCropRight(clampCropInput(value)),
-          })}
-          {CompressPanel({
-            enabled: enableCompress,
-            onToggle: setEnableCompress,
-            format: compressFormat,
-            onFormatChange: (value) => setCompressFormat(value),
-            quality: compressQuality,
-            onQualityChange: (value) => setCompressQuality(value),
-          })}
-          {RotatePanel({
-            enabled: enableRotate,
-            onToggle: setEnableRotate,
-            mode: rotateMode,
-            onModeChange: (value) => setRotateMode(value),
-            angle: rotateAngle,
-            onAngleChange: (value) => setRotateAngle(clampFixedAngle(value)),
-            minAngle: rotateMinAngle,
-            onMinAngleChange: (value) => setRotateMinAngle(clampRandomAngle(value)),
-            maxAngle: rotateMaxAngle,
-            onMaxAngleChange: (value) => setRotateMaxAngle(clampRandomAngle(value)),
-            autoCrop: rotateAutoCrop,
-            onAutoCropChange: setRotateAutoCrop,
-          })}
-        </Collapse>
+        <Collapse
+          bordered={false}
+          defaultActiveKey={['hash', 'compress', 'rotate']}
+          items={[
+            {
+              key: 'hash',
+              label: '哈希刷新',
+              children: (
+                <HashPanel
+                  enabled={enableHashRename}
+                  onToggle={setEnableHashRename}
+                  algorithm={hashAlgorithm}
+                  onAlgorithmChange={setHashAlgorithm}
+                />
+              ),
+            },
+            {
+              key: 'resize',
+              label: '尺寸调整',
+              children: (
+                <ResizePanel
+                  enabled={enableResize}
+                  onToggle={setEnableResize}
+                  width={resizeWidth}
+                  height={resizeHeight}
+                  onWidthChange={setResizeWidth}
+                  onHeightChange={setResizeHeight}
+                  fit={resizeFit}
+                  onFitChange={(value) => setResizeFit(value)}
+                  withoutEnlargement={preventEnlarge}
+                  onWithoutEnlargementChange={setPreventEnlarge}
+                />
+              ),
+            },
+            {
+              key: 'crop',
+              label: '裁剪',
+              children: (
+                <CropPanel
+                  enabled={enableCrop}
+                  onToggle={setEnableCrop}
+                  top={cropTop}
+                  bottom={cropBottom}
+                  left={cropLeft}
+                  right={cropRight}
+                  onTopChange={(value) => setCropTop(clampCropInput(value))}
+                  onBottomChange={(value) => setCropBottom(clampCropInput(value))}
+                  onLeftChange={(value) => setCropLeft(clampCropInput(value))}
+                  onRightChange={(value) => setCropRight(clampCropInput(value))}
+                />
+              ),
+            },
+            {
+              key: 'compress',
+              label: '压缩',
+              children: (
+                <CompressPanel
+                  enabled={enableCompress}
+                  onToggle={setEnableCompress}
+                  format={compressFormat}
+                  onFormatChange={(value) => setCompressFormat(value)}
+                  quality={compressQuality}
+                  onQualityChange={(value) => setCompressQuality(value)}
+                />
+              ),
+            },
+            {
+              key: 'rotate',
+              label: '旋转',
+              children: (
+                <RotatePanel
+                  enabled={enableRotate}
+                  onToggle={setEnableRotate}
+                  mode={rotateMode}
+                  onModeChange={(value) => setRotateMode(value)}
+                  angle={rotateAngle}
+                  onAngleChange={(value) => setRotateAngle(clampFixedAngle(value))}
+                  minAngle={rotateMinAngle}
+                  onMinAngleChange={(value) => setRotateMinAngle(clampRandomAngle(value))}
+                  maxAngle={rotateMaxAngle}
+                  onMaxAngleChange={(value) => setRotateMaxAngle(clampRandomAngle(value))}
+                  autoCrop={rotateAutoCrop}
+                  onAutoCropChange={setRotateAutoCrop}
+                />
+              ),
+            },
+          ]}
+        />
 
         <Divider style={{ margin: '16px 0' }} />
 

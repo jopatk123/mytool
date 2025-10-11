@@ -46,8 +46,11 @@ const initialState = {
     excludeHidden: true,
     filter: {
       enableSizeFilter: false,
-      minSize: 0,
-      maxSize: 100 * 1024 * 1024, // 100MB
+      // 当未输入时使用 undefined 表示不限制
+      minSize: undefined,
+      maxSize: undefined,
+      // 扩展名过滤的排除模式，默认 false（包含模式）
+      excludeExtensions: false,
       enableExtensionFilter: false,
       extensions: ['.jpg', '.jpeg', '.png'],
       enableNameFilter: false,

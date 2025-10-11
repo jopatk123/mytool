@@ -24,9 +24,9 @@ export class FileFilter {
       filtered = this.filterBySize(filtered, options.minSize, options.maxSize);
     }
 
-    // 应用后缀过滤
+    // 应用后缀过滤（支持反向过滤：excludeExtensions）
     if (options.enableExtensionFilter && options.extensions?.length) {
-      filtered = this.filterByExtension(filtered, options.extensions);
+      filtered = this.filterByExtension(filtered, options.extensions, options.excludeExtensions);
     }
 
     // 应用文件名关键字过滤
@@ -65,14 +65,20 @@ export class FileFilter {
   /**
    * 按文件扩展名过滤
    */
-  private static filterByExtension(files: FileInfo[], extensions: string[]): FileInfo[] {
+  private static filterByExtension(
+    files: FileInfo[],
+    extensions: string[],
+    exclude?: boolean
+  ): FileInfo[] {
     const normalizedExtensions = extensions.map((ext) =>
       ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`
     );
 
     return files.filter((file) => {
       const fileExt = file.extension.toLowerCase();
-      return normalizedExtensions.includes(fileExt);
+      const matched = normalizedExtensions.includes(fileExt);
+      // 如果 exclude 为 true，则排除列表中的扩展名；否则仅包含列表中的扩展名
+      return exclude ? !matched : matched;
     });
   }
 
@@ -105,14 +111,18 @@ export class FileFilter {
       }
     }
 
-    // 检查扩展名
+    // 检查扩展名（支持反向过滤）
     if (options.enableExtensionFilter && options.extensions?.length) {
       const normalizedExtensions = options.extensions.map((ext) =>
         ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`
       );
       const fileExt = file.extension.toLowerCase();
-      if (!normalizedExtensions.includes(fileExt)) {
-        return false;
+      const matched = normalizedExtensions.includes(fileExt);
+      if (options.excludeExtensions) {
+        // 如果匹配到要排除的扩展名，则不通过
+        if (matched) return false;
+      } else {
+        if (!matched) return false;
       }
     }
 

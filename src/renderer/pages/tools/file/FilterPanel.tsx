@@ -39,16 +39,17 @@ export const FilterPanel: React.FC = () => {
               <Col span={12}>
                 <Space>
                   <Text>最小:</Text>
-                  <InputNumber
-                    min={0}
-                    value={(filter.minSize || 0) / (1024 * 1024)}
-                    onChange={(value) =>
-                      updateFilter({ minSize: (value || 0) * 1024 * 1024 })
-                    }
-                    disabled={isScanning}
-                    addonAfter="MB"
-                    style={{ width: 150 }}
-                  />
+                      <InputNumber
+                        min={0}
+                        // 当未设置时显示为空
+                        value={filter.minSize !== undefined ? filter.minSize / (1024 * 1024) : undefined}
+                        onChange={(value) =>
+                          updateFilter({ minSize: value !== undefined && value !== null ? value * 1024 * 1024 : undefined })
+                        }
+                        disabled={isScanning}
+                        addonAfter="MB"
+                        style={{ width: 150 }}
+                      />
                 </Space>
               </Col>
               <Col span={12}>
@@ -56,9 +57,10 @@ export const FilterPanel: React.FC = () => {
                   <Text>最大:</Text>
                   <InputNumber
                     min={0}
-                    value={(filter.maxSize || 100 * 1024 * 1024) / (1024 * 1024)}
+                    // 当未设置时显示为空
+                    value={filter.maxSize !== undefined ? filter.maxSize / (1024 * 1024) : undefined}
                     onChange={(value) =>
-                      updateFilter({ maxSize: (value || 100) * 1024 * 1024 })
+                      updateFilter({ maxSize: value !== undefined && value !== null ? value * 1024 * 1024 : undefined })
                     }
                     disabled={isScanning}
                     addonAfter="MB"
@@ -81,6 +83,15 @@ export const FilterPanel: React.FC = () => {
           </Checkbox>
           {filter.enableExtensionFilter && (
             <div style={{ marginTop: 8 }}>
+              <div style={{ marginBottom: 8 }}>
+                <Checkbox
+                  checked={!!filter.excludeExtensions}
+                  onChange={(e) => updateFilter({ excludeExtensions: e.target.checked })}
+                  disabled={isScanning}
+                >
+                  排除这些扩展名（反向过滤）
+                </Checkbox>
+              </div>
               <Input
                 placeholder="输入扩展名，用空格分隔，例如: .jpg .png .pdf"
                 value={(filter.extensions || []).join(' ')}

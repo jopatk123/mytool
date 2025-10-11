@@ -281,6 +281,8 @@ export interface FileFilterOptions {
   
   // 后缀过滤
   enableExtensionFilter?: boolean;
+  // 当为 true 时表示反向过滤：排除列表中的扩展名，而不是只包含列表中的扩展名
+  excludeExtensions?: boolean;
   extensions?: string[]; // ['.jpg', '.png']
   
   // 文件名关键字过滤

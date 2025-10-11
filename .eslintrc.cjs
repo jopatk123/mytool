@@ -15,7 +15,8 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     ecmaFeatures: { jsx: true },
-    project: ['./tsconfig.json', './tsconfig.electron.json', './tsconfig.node.json'],
+    // Use a single ESLint-specific tsconfig to avoid issues with project references
+    project: ['./tsconfig.eslint.json'],
     tsconfigRootDir: __dirname,
   },
   plugins: ['react', 'react-refresh', '@typescript-eslint', 'vitest'],

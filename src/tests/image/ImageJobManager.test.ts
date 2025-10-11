@@ -41,7 +41,7 @@ describe('ImageJobManager', () => {
       operations: [
         { type: 'resize', width: 64, height: 64, fit: 'inside' },
         { type: 'compress', quality: 70, targetFormat: 'jpeg' },
-        { type: 'hashRename', algorithm: 'sha1', keepExtension: true },
+        { type: 'hashRename', algorithm: 'sha1' },
       ],
       options: {
         outputDirectory: workspace.outputDir,
@@ -64,8 +64,12 @@ describe('ImageJobManager', () => {
     expect(events.some(event => event.type === 'start')).toBe(true);
 
     for (const result of summary.results) {
+      const original = workspace.assets.find(asset => asset.id === result.assetId);
+      expect(original).toBeDefined();
+      expect(result.outputPath).toBe(original?.filePath);
       const exists = await fs.access(result.outputPath).then(() => true).catch(() => false);
       expect(exists).toBe(true);
+      expect(result.hash).toBeDefined();
     }
   });
 });

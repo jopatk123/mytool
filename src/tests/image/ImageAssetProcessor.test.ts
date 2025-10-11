@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as path from 'node:path';
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import type { ImageBatchOperation } from '@shared/types';
 import { ImageAssetProcessor } from '@main/tools/image/processing/ImageAssetProcessor';
@@ -35,7 +35,7 @@ describe('ImageAssetProcessor', () => {
     const operations: ImageBatchOperation[] = [
       { type: 'resize', width: 64, height: 64 },
       { type: 'compress', quality: 70, targetFormat: 'jpeg' },
-      { type: 'hashRename', algorithm: 'sha1', keepExtension: true },
+      { type: 'hashRename', algorithm: 'sha1' },
     ];
 
     const processor = new ImageAssetProcessor({ jobId: 'job', options, operations });
@@ -48,7 +48,7 @@ describe('ImageAssetProcessor', () => {
     expect(await fs.access(result.outputPath).then(() => true).catch(() => false)).toBe(true);
   });
 
-  it('hash renames files without extension and avoids collisions when overwrite is false', async () => {
+  it('refreshes hash in place even when overwrite is disabled', async () => {
     const options: JobOptions = {
       concurrency: 2,
       outputDirectory: outputDir,
@@ -58,29 +58,26 @@ describe('ImageAssetProcessor', () => {
     };
 
     const operations: ImageBatchOperation[] = [
-      { type: 'hashRename', algorithm: 'sha1', keepExtension: false, prefix: 'img-' },
+      { type: 'hashRename', algorithm: 'sha1' },
     ];
 
     const processor = new ImageAssetProcessor({ jobId: 'job-hash', options, operations });
 
-    const firstResult = await processor.process(assets[0]);
-    const secondResult = await processor.process(assets[0]);
+    const asset = assets[0];
+    const originalBuffer = await fs.readFile(asset.filePath);
+    const originalHash = createHash('sha1').update(originalBuffer).digest('hex');
 
-    expect(firstResult.operationsApplied).toEqual(['hashRename']);
-    expect(secondResult.operationsApplied).toEqual(['hashRename']);
+    const result = await processor.process(asset);
 
-    expect(firstResult.hash).toBeDefined();
-    expect(secondResult.hash).toBeDefined();
+    expect(result.operationsApplied).toEqual(['hashRename']);
+    expect(result.outputPath).toBe(asset.filePath);
+    expect(result.hash).toBeDefined();
+    expect(result.hash).not.toBe(originalHash);
 
-    expect(path.extname(firstResult.outputPath)).toBe('');
-    expect(path.extname(secondResult.outputPath)).toBe('');
+    const updatedBuffer = await fs.readFile(asset.filePath);
+    const recalculatedHash = createHash('sha1').update(updatedBuffer).digest('hex');
+    expect(result.hash).toBe(recalculatedHash);
 
-    expect(path.basename(firstResult.outputPath)).toBe(`img-${firstResult.hash}`);
-  expect(path.basename(secondResult.outputPath)).toMatch(new RegExp(`^img-${secondResult.hash}(?:_\\d+)?$`));
-
-    expect(await fs.access(firstResult.outputPath).then(() => true).catch(() => false)).toBe(true);
-    expect(await fs.access(secondResult.outputPath).then(() => true).catch(() => false)).toBe(true);
-
-    expect(firstResult.outputPath).not.toBe(secondResult.outputPath);
+    expect(await fs.access(result.outputPath).then(() => true).catch(() => false)).toBe(true);
   });
 });

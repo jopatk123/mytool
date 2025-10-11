@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Card,
   Collapse,
   Divider,
-  Input,
   InputNumber,
   Select,
   Slider,
@@ -34,8 +33,6 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
   
   const [enableHashRename, setEnableHashRename] = useState(true);
   const [hashAlgorithm, setHashAlgorithm] = useState<HashRenameOperation['algorithm']>('sha256');
-  const [hashPrefix, setHashPrefix] = useState('');
-  const [keepExtension, setKeepExtension] = useState(true);
 
   const [enableResize, setEnableResize] = useState(false);
   const [resizeWidth, setResizeWidth] = useState<number | null>(null);
@@ -49,6 +46,20 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
 
   const [overwrite, setOverwrite] = useState(false);
   const [outputDirectory, setOutputDirectory] = useState<string | null>(null);
+  const effectiveOverwrite = enableHashRename ? true : overwrite;
+
+  useEffect(() => {
+    if (!enableHashRename) {
+      return;
+    }
+    if (!overwrite) {
+      setOverwrite(true);
+    }
+    if (outputDirectory) {
+      setOutputDirectory(null);
+      message.info('启用哈希刷新后已禁用自定义输出目录，处理结果将覆盖原文件。');
+    }
+  }, [enableHashRename, overwrite, outputDirectory]);
 
   const canRun = useMemo(() => {
     const hasOperation = enableHashRename || enableResize || enableCompress;
@@ -81,8 +92,6 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
       operations.push({
         type: 'hashRename',
         algorithm: hashAlgorithm,
-        prefix: hashPrefix.trim() || undefined,
-        keepExtension,
       });
     }
 
@@ -113,14 +122,8 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
       return;
     }
 
-    // 检查哈希重命名与覆盖的冲突
-    if (enableHashRename && overwrite) {
-      message.warning('哈希重命名会改变文件名，无法覆盖原文件。建议取消勾选"覆盖原文件"或禁用哈希重命名。');
-      return;
-    }
-
     // 如果未勾选覆盖且未选择输出目录，提示用户
-    if (!overwrite && !outputDirectory) {
+    if (!effectiveOverwrite && !outputDirectory) {
       message.info('将在原目录生成新文件');
     }
 
@@ -128,8 +131,8 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
     onRun({
       operations,
       options: {
-        overwrite,
-        outputDirectory,
+        overwrite: effectiveOverwrite,
+        outputDirectory: enableHashRename ? null : outputDirectory,
       },
     });
   };
@@ -145,7 +148,7 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Collapse bordered={false} defaultActiveKey={['hash', 'compress']}>
-          <Collapse.Panel header="哈希重命名" key="hash">
+          <Collapse.Panel header="哈希刷新" key="hash">
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               <Switch checked={enableHashRename} onChange={setEnableHashRename} />
               <Space wrap>
@@ -162,16 +165,7 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
                   disabled={!enableHashRename}
                 />
               </Space>
-              <Input
-                placeholder="可选：为文件名前增加前缀"
-                value={hashPrefix}
-                onChange={event => setHashPrefix(event.target.value)}
-                disabled={!enableHashRename}
-              />
-              <Space>
-                <Switch checked={keepExtension} onChange={setKeepExtension} disabled={!enableHashRename} />
-                <Text>保留原始扩展名</Text>
-              </Space>
+              <Text type="secondary">此操作会直接覆盖原文件，仅刷新其哈希值。</Text>
             </Space>
           </Collapse.Panel>
 
@@ -243,18 +237,18 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
 
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Space>
-            <Switch checked={overwrite} onChange={setOverwrite} />
-            <Text>允许覆盖原文件（请谨慎操作）</Text>
+            <Switch checked={effectiveOverwrite} onChange={setOverwrite} disabled={enableHashRename} />
+            <Text>允许覆盖原文件（哈希刷新时将强制启用）</Text>
           </Space>
 
-          {!overwrite && (
+          {!effectiveOverwrite && (
             <Space direction="vertical" size="small" style={{ width: '100%' }}>
               <Text type="secondary">输出目录（可选）：</Text>
               <Space style={{ width: '100%' }}>
                 <Button 
                   icon={<FolderOpenOutlined />} 
                   onClick={handleSelectOutputDirectory}
-                  disabled={overwrite}
+                  disabled={effectiveOverwrite}
                 >
                   选择输出目录
                 </Button>

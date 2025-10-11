@@ -23,7 +23,7 @@ export class ImageTool implements ITool {
   readonly config: ToolConfig = {
     id: 'image-tool',
     name: '图片批量处理',
-    description: '批量扫描目录中的图片并执行压缩、尺寸调整、哈希重命名等操作',
+  description: '批量扫描目录中的图片并执行压缩、尺寸调整、哈希刷新等操作',
     icon: '🖼️',
     category: ToolCategory.IMAGE,
     enabled: true,

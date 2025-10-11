@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'path';
-import { promises as fs } from 'fs';
+import { existsSync, promises as fs } from 'fs';
 import type { App } from 'electron';
 import type Logger from '../../shared/utils/logger';
 
@@ -21,6 +21,11 @@ const resolvePreloadPath = (options: CreateMainWindowOptions): string => {
   if (options.preloadPath) {
     return options.preloadPath;
   }
+  const compiledPreloadPath = path.join(__dirname, '../preload.js');
+  if (existsSync(compiledPreloadPath)) {
+    return compiledPreloadPath;
+  }
+
   return path.join(__dirname, 'preload.js');
 };
 

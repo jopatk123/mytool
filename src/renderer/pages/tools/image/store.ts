@@ -38,7 +38,7 @@ const uniqueIds = (ids: string[]): string[] => Array.from(new Set(ids));
 
 export const useImageToolStore = create<ImageToolState>()((set, get) => ({
   directory: null,
-  includeSubdirectories: true,
+  includeSubdirectories: false,
   scanId: null,
   assets: [],
   selectedAssetIds: [],

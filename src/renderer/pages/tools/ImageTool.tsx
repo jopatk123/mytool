@@ -104,6 +104,28 @@ function ImageTool() {
     }
   }, [electronAPI, includeSubdirectories, setDirectory, setScanResult, message]);
 
+  const handleRescan = useCallback(async () => {
+    if (!directory) {
+      message.warning('请先选择图片目录');
+      return;
+    }
+
+    try {
+      setScanning(true);
+      const scanResult = await electronAPI.scanImages({
+        directory,
+        options: { includeSubdirectories },
+      });
+      setScanResult(scanResult.scanId, scanResult.assets, directory);
+      message.success(`已重新扫描 ${scanResult.assets.length} 张图片`);
+    } catch (error) {
+      logger.error('Rescan folder failed', error);
+      message.error('重新扫描图片目录失败，请稍后重试');
+    } finally {
+      setScanning(false);
+    }
+  }, [directory, electronAPI, includeSubdirectories, message, setScanResult]);
+
   const handleRunJob = useCallback(async (payload: { operations: ImageJobRequest['operations']; options: ImageJobRequest['options'] }) => {
     if (!scanId) {
       message.warning('请先扫描图片目录');
@@ -176,6 +198,9 @@ function ImageTool() {
               </Button>
               <Button danger onClick={clearScan} disabled={assets.length === 0}>
                 清除扫描结果
+              </Button>
+              <Button type="primary" onClick={handleRescan} disabled={!directory || scanning} loading={scanning}>
+                扫描图片
               </Button>
             </Space>
             <Text type="secondary">

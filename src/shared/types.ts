@@ -116,6 +116,17 @@ export interface AppConfig {
  */
 export type ImageHashAlgorithm = 'md5' | 'sha1' | 'sha256';
 
+export type ImageCropDirection = 'top' | 'bottom' | 'left' | 'right';
+
+export interface ImageCropPixels {
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+}
+
+export type ImageRotationMode = 'fixed' | 'random';
+
 export type ImageBatchOperation =
   | {
       type: 'hashRename';
@@ -135,6 +146,23 @@ export type ImageBatchOperation =
       type: 'compress';
       quality: number; // 1-100
       targetFormat?: 'jpeg' | 'png' | 'webp';
+    }
+  | {
+      type: 'crop';
+      pixels: ImageCropPixels;
+    }
+  | {
+      type: 'rotate';
+      mode: 'fixed';
+      angle: number;
+      autoCrop?: boolean;
+    }
+  | {
+      type: 'rotate';
+      mode: 'random';
+      minAngle?: number;
+      maxAngle?: number;
+      autoCrop?: boolean;
     };
 
 export interface ImageAsset {

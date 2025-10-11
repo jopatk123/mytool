@@ -18,7 +18,11 @@ const fileExists = async (filePath: string): Promise<boolean> => {
   }
 };
 
-const moveFileSafe = async (tempPath: string, destination: string, overwrite: boolean): Promise<void> => {
+const moveFileSafe = async (
+  tempPath: string,
+  destination: string,
+  overwrite: boolean,
+): Promise<void> => {
   await ensureDirectory(path.dirname(destination));
 
   if (!overwrite) {
@@ -66,10 +70,4 @@ const generateUniquePath = async (filePath: string): Promise<string> => {
   throw new Error('无法为文件生成唯一名称');
 };
 
-export {
-  buildOutputPath,
-  createTempFilePath,
-  ensureDirectory,
-  generateUniquePath,
-  moveFileSafe,
-};
+export { buildOutputPath, createTempFilePath, ensureDirectory, generateUniquePath, moveFileSafe };

@@ -4,9 +4,13 @@ import { createIpcRegistrar } from '../../main/ipc/createIpcRegistrar';
 
 const createMocks = () => {
   const handleSpy = vi.fn();
-  const ipcMain = { handle: handleSpy } as unknown as Parameters<typeof createIpcRegistrar>[0]['ipcMain'];
+  const ipcMain = { handle: handleSpy } as unknown as Parameters<
+    typeof createIpcRegistrar
+  >[0]['ipcMain'];
   const logger = { error: vi.fn() } as Parameters<typeof createIpcRegistrar>[0]['logger'];
-  const observability = { recordError: vi.fn() } as Parameters<typeof createIpcRegistrar>[0]['observability'];
+  const observability = { recordError: vi.fn() } as Parameters<
+    typeof createIpcRegistrar
+  >[0]['observability'];
   const toSafeJson = vi.fn((value: unknown) => value);
 
   const register = createIpcRegistrar({ ipcMain, logger, observability, toSafeJson });
@@ -50,9 +54,12 @@ describe('createIpcRegistrar', () => {
       args: ['tool-id', { foo: 'bar' }],
       error: failure,
     });
-    expect(observability.recordError).toHaveBeenCalledWith(expect.objectContaining({
-      type: `ipc:${IPCChannel.TOOL_EXECUTE}`,
-    }), 'main');
+    expect(observability.recordError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: `ipc:${IPCChannel.TOOL_EXECUTE}`,
+      }),
+      'main',
+    );
     expect(toSafeJson).toHaveBeenCalledTimes(3);
   });
 });

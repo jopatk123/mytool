@@ -1,11 +1,6 @@
 import React from 'react';
 import { Button, Space, message, Modal } from 'antd';
-import {
-  ExportOutlined,
-  ImportOutlined,
-  DeleteOutlined,
-  CloseOutlined,
-} from '@ant-design/icons';
+import { ExportOutlined, ImportOutlined, DeleteOutlined, CloseOutlined } from '@ant-design/icons';
 import { electronAPI } from '@renderer/api/electron';
 import { useFileToolStore, getSelectedFiles } from './store';
 
@@ -14,14 +9,8 @@ import { useFileToolStore, getSelectedFiles } from './store';
  * 提供导出、导入、删除、移除等操作
  */
 export const ActionPanel: React.FC = () => {
-  const {
-    scanResult,
-    selectedFileIds,
-    isProcessing,
-    setIsProcessing,
-    setScanResult,
-    removeFiles,
-  } = useFileToolStore();
+  const { scanResult, selectedFileIds, isProcessing, setIsProcessing, setScanResult, removeFiles } =
+    useFileToolStore();
 
   const selectedFiles = scanResult ? getSelectedFiles(useFileToolStore.getState()) : [];
   const hasSelection = selectedFileIds.size > 0;
@@ -91,9 +80,7 @@ export const ActionPanel: React.FC = () => {
             const failedCount = renameResults.filter((r) => !r.success).length;
 
             if (failedCount > 0) {
-              message.warning(
-                `重命名完成：成功 ${successCount} 个，失败 ${failedCount} 个`
-              );
+              message.warning(`重命名完成：成功 ${successCount} 个，失败 ${failedCount} 个`);
             } else {
               message.success(`成功重命名 ${successCount} 个文件`);
             }
@@ -178,11 +165,7 @@ export const ActionPanel: React.FC = () => {
       >
         导出CSV
       </Button>
-      <Button
-        icon={<ImportOutlined />}
-        onClick={handleImport}
-        disabled={isProcessing}
-      >
+      <Button icon={<ImportOutlined />} onClick={handleImport} disabled={isProcessing}>
         导入并重命名
       </Button>
       <Button

@@ -54,12 +54,8 @@ function Settings() {
           <Space direction="vertical">
             <Text strong>Desktop Toolkit v1.0.0</Text>
             <Divider style={{ margin: '8px 0' }} />
-            <Text type="secondary">
-              一个功能强大的本地桌面工具集应用
-            </Text>
-            <Text type="secondary">
-              基于 Electron + React + TypeScript 构建
-            </Text>
+            <Text type="secondary">一个功能强大的本地桌面工具集应用</Text>
+            <Text type="secondary">基于 Electron + React + TypeScript 构建</Text>
           </Space>
         </Card>
       </Space>

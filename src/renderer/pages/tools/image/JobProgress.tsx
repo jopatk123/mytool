@@ -23,10 +23,13 @@ export function JobProgress({ progress, summary, errors }: JobProgressProps) {
             <Text strong>总体进度</Text>
             <Progress
               percent={progress.percent}
-              status={progress.failed > 0 ? 'exception' : progress.percent === 100 ? 'success' : 'active'}
+              status={
+                progress.failed > 0 ? 'exception' : progress.percent === 100 ? 'success' : 'active'
+              }
             />
             <Text type="secondary">
-              已完成 {progress.completed} / {progress.total}，失败 {progress.failed}，剩余 {progress.pending}
+              已完成 {progress.completed} / {progress.total}，失败 {progress.failed}，剩余{' '}
+              {progress.pending}
             </Text>
             {progress.message && <Text>{progress.message}</Text>}
           </div>
@@ -49,7 +52,7 @@ export function JobProgress({ progress, summary, errors }: JobProgressProps) {
             <List
               size="small"
               dataSource={errors}
-              renderItem={error => (
+              renderItem={(error) => (
                 <List.Item>
                   <Space direction="vertical" size={0} style={{ width: '100%' }}>
                     <Text type="danger">图片 ID：{error.assetId}</Text>

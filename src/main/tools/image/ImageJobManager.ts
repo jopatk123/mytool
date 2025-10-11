@@ -56,7 +56,11 @@ export class ImageJobManager {
     const jobId = request.jobId ?? randomUUID();
 
     const normalizedOptions: JobOptions = {
-      concurrency: ensureWithin(request.options?.concurrency ?? DEFAULT_CONCURRENCY, 1, MAX_CONCURRENCY),
+      concurrency: ensureWithin(
+        request.options?.concurrency ?? DEFAULT_CONCURRENCY,
+        1,
+        MAX_CONCURRENCY,
+      ),
       outputDirectory: request.options?.outputDirectory ?? null,
       overwrite: request.options?.overwrite ?? false,
       preserveMetadata: request.options?.preserveMetadata ?? true,
@@ -82,7 +86,7 @@ export class ImageJobManager {
     this.jobs.set(jobId, job);
     this.emit(sender, { type: 'start', jobId, total: assets.length });
 
-    void this.processJob(job).catch(error => {
+    void this.processJob(job).catch((error) => {
       logger.error('Job processing failed', { jobId, error });
       this.emit(sender, {
         type: 'completed',
@@ -129,7 +133,11 @@ export class ImageJobManager {
     this.jobs.delete(job.id);
   }
 
-  private async worker(job: ActiveJob, queue: ImageAsset[], processor: ImageAssetProcessor): Promise<void> {
+  private async worker(
+    job: ActiveJob,
+    queue: ImageAsset[],
+    processor: ImageAssetProcessor,
+  ): Promise<void> {
     while (queue.length > 0) {
       if (job.abortController.signal.aborted) {
         return;
@@ -188,7 +196,6 @@ export class ImageJobManager {
     };
   }
 
-
   private emit(sender: WebContents | undefined, event: ImageJobEvent): void {
     if (!sender || sender.isDestroyed()) {
       return;
@@ -217,4 +224,3 @@ export class ImageJobManager {
     };
   }
 }
-

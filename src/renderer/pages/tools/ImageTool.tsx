@@ -38,7 +38,7 @@ function ImageTool() {
     updateFromEvent,
     jobId,
     setJobId,
-  } = useImageToolStore(state => ({
+  } = useImageToolStore((state) => ({
     directory: state.directory,
     includeSubdirectories: state.includeSubdirectories,
     setIncludeSubdirectories: state.setIncludeSubdirectories,
@@ -63,7 +63,7 @@ function ImageTool() {
   useEffect(() => {
     let dispose: () => void = () => {};
     try {
-      dispose = electronAPI.onImageJobEvent(event => {
+      dispose = electronAPI.onImageJobEvent((event) => {
         updateFromEvent(event);
       });
     } catch (error) {
@@ -126,36 +126,42 @@ function ImageTool() {
     }
   }, [directory, electronAPI, includeSubdirectories, message, setScanResult]);
 
-  const handleRunJob = useCallback(async (payload: { operations: ImageJobRequest['operations']; options: ImageJobRequest['options'] }) => {
-    if (!scanId) {
-      message.warning('请先扫描图片目录');
-      return;
-    }
+  const handleRunJob = useCallback(
+    async (payload: {
+      operations: ImageJobRequest['operations'];
+      options: ImageJobRequest['options'];
+    }) => {
+      if (!scanId) {
+        message.warning('请先扫描图片目录');
+        return;
+      }
 
-    if (selectedAssetIds.length === 0) {
-      message.warning('请选择要处理的图片');
-      return;
-    }
+      if (selectedAssetIds.length === 0) {
+        message.warning('请选择要处理的图片');
+        return;
+      }
 
-    try {
-      const request: ImageJobRequest = {
-        scanId,
-        assetIds: selectedAssetIds,
-        operations: payload.operations,
-        options: {
-          ...payload.options,
-          concurrency: payload.options?.concurrency,
-        },
-      };
+      try {
+        const request: ImageJobRequest = {
+          scanId,
+          assetIds: selectedAssetIds,
+          operations: payload.operations,
+          options: {
+            ...payload.options,
+            concurrency: payload.options?.concurrency,
+          },
+        };
 
-      const { jobId: startedJobId } = await electronAPI.startImageJob(request);
-      setJobId(startedJobId);
-      message.success('批处理任务已开始');
-    } catch (error) {
-      logger.error('Start image job failed', error);
-      message.error('启动批处理失败，请稍后重试');
-    }
-  }, [electronAPI, scanId, selectedAssetIds, setJobId, message]);
+        const { jobId: startedJobId } = await electronAPI.startImageJob(request);
+        setJobId(startedJobId);
+        message.success('批处理任务已开始');
+      } catch (error) {
+        logger.error('Start image job failed', error);
+        message.error('启动批处理失败，请稍后重试');
+      }
+    },
+    [electronAPI, scanId, selectedAssetIds, setJobId, message],
+  );
 
   const handleCancelJob = useCallback(async () => {
     if (!jobId) return;
@@ -199,7 +205,12 @@ function ImageTool() {
               <Button danger onClick={clearScan} disabled={assets.length === 0}>
                 清除扫描结果
               </Button>
-              <Button type="primary" onClick={handleRescan} disabled={!directory || scanning} loading={scanning}>
+              <Button
+                type="primary"
+                onClick={handleRescan}
+                disabled={!directory || scanning}
+                loading={scanning}
+              >
                 扫描图片
               </Button>
             </Space>
@@ -211,7 +222,7 @@ function ImageTool() {
       </Card>
 
       {/* 图片列表和预览区域 */}
-      <Card bodyStyle={{ padding: '16px' }}>
+      <Card styles={{ body: { padding: '16px' } }}>
         <ImageGrid assets={assets} selectedAssetIds={selectedAssetIds} onToggle={toggleAsset} />
       </Card>
 

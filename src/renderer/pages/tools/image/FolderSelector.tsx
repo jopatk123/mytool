@@ -11,10 +11,21 @@ interface FolderSelectorProps {
   loading?: boolean;
 }
 
-export function FolderSelector({ directory, includeSubdirectories, onSelectDirectory, onToggleInclude, loading }: FolderSelectorProps) {
+export function FolderSelector({
+  directory,
+  includeSubdirectories,
+  onSelectDirectory,
+  onToggleInclude,
+  loading,
+}: FolderSelectorProps) {
   return (
     <Space direction="horizontal" size="large" wrap>
-      <Button type="primary" icon={<FolderOpenOutlined />} onClick={onSelectDirectory} loading={loading}>
+      <Button
+        type="primary"
+        icon={<FolderOpenOutlined />}
+        onClick={onSelectDirectory}
+        loading={loading}
+      >
         选择图片文件夹
       </Button>
       <Space>

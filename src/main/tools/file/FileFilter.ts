@@ -46,11 +46,7 @@ export class FileFilter {
   /**
    * 按文件大小过滤
    */
-  private static filterBySize(
-    files: FileInfo[],
-    minSize?: number,
-    maxSize?: number
-  ): FileInfo[] {
+  private static filterBySize(files: FileInfo[], minSize?: number, maxSize?: number): FileInfo[] {
     return files.filter((file) => {
       if (minSize !== undefined && file.size < minSize) {
         return false;
@@ -68,10 +64,10 @@ export class FileFilter {
   private static filterByExtension(
     files: FileInfo[],
     extensions: string[],
-    exclude?: boolean
+    exclude?: boolean,
   ): FileInfo[] {
     const normalizedExtensions = extensions.map((ext) =>
-      ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`
+      ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`,
     );
 
     return files.filter((file) => {
@@ -114,7 +110,7 @@ export class FileFilter {
     // 检查扩展名（支持反向过滤）
     if (options.enableExtensionFilter && options.extensions?.length) {
       const normalizedExtensions = options.extensions.map((ext) =>
-        ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`
+        ext.toLowerCase().startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`,
       );
       const fileExt = file.extension.toLowerCase();
       const matched = normalizedExtensions.includes(fileExt);
@@ -150,11 +146,11 @@ export class FileFilter {
    */
   static formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 B';
-    
+
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     const k = 1024;
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${units[i]}`;
   }
 }

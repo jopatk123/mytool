@@ -56,16 +56,20 @@ export class ToolManager {
    */
   getAllTools(): ToolConfig[] {
     return Array.from(this.tools.values())
-      .map(tool => tool.config)
-      .filter(config => config.enabled);
+      .map((tool) => tool.config)
+      .filter((config) => config.enabled);
   }
 
   /**
    * 执行工具
    */
-  async executeTool(toolId: string, params: unknown, context?: ToolExecuteContext): Promise<unknown> {
+  async executeTool(
+    toolId: string,
+    params: unknown,
+    context?: ToolExecuteContext,
+  ): Promise<unknown> {
     const tool = this.tools.get(toolId);
-    
+
     if (!tool) {
       throw new AppError(AppErrorCode.NOT_FOUND, `Tool not found: ${toolId}`, {
         recoverable: false,
@@ -74,9 +78,10 @@ export class ToolManager {
     }
 
     const payload = params ?? {};
-    const action = typeof (payload as { action?: unknown }).action === 'string'
-      ? (payload as { action: string }).action
-      : undefined;
+    const action =
+      typeof (payload as { action?: unknown }).action === 'string'
+        ? (payload as { action: string }).action
+        : undefined;
 
     if (!action) {
       throw new AppError(AppErrorCode.INVALID_ARGUMENT, `Missing action for tool ${toolId}`, {
@@ -92,11 +97,15 @@ export class ToolManager {
       return result;
     } catch (error) {
       logger.error(`Tool action failed`, { toolId, action, error });
-      throw new AppError(AppErrorCode.EXECUTION_FAILED, `Tool ${tool.config.name} failed to execute action ${action}`, {
-        cause: error,
-        context: { toolId, action },
-        recoverable: false,
-      });
+      throw new AppError(
+        AppErrorCode.EXECUTION_FAILED,
+        `Tool ${tool.config.name} failed to execute action ${action}`,
+        {
+          cause: error,
+          context: { toolId, action },
+          recoverable: false,
+        },
+      );
     }
   }
 
@@ -105,15 +114,15 @@ export class ToolManager {
    */
   cleanup(): void {
     logger.info('Cleaning up tools...');
-    
-    this.tools.forEach(tool => {
+
+    this.tools.forEach((tool) => {
       try {
         tool.cleanup();
       } catch (error) {
         logger.error(`Failed to cleanup tool ${tool.config.name}:`, error);
       }
     });
-    
+
     this.tools.clear();
     logger.success('Tools cleaned up');
   }

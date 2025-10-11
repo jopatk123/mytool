@@ -170,8 +170,8 @@ export class FileRenamer {
 
     // 检查路径是否包含危险字符
     const dangerousPatterns = [
-      /\.\./,  // 父目录引用
-      /[<>"|?*]/,  // Windows 非法字符
+      /\.\./, // 父目录引用
+      /[<>"|?*]/, // Windows 非法字符
     ];
 
     for (const pattern of dangerousPatterns) {

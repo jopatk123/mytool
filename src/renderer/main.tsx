@@ -69,5 +69,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </ErrorBoundary>
       </ElectronAPIProvider>
     </ConfigProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

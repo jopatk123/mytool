@@ -29,13 +29,8 @@ const formatDate = (timestamp: number): string => {
  * 显示扫描结果，支持选择和虚拟滚动
  */
 export const FileTable: React.FC = () => {
-  const {
-    scanResult,
-    selectedFileIds,
-    toggleFileSelection,
-    selectAllFiles,
-    clearSelection,
-  } = useFileToolStore();
+  const { scanResult, selectedFileIds, toggleFileSelection, selectAllFiles, clearSelection } =
+    useFileToolStore();
 
   const files = scanResult?.files || [];
   const hasSelection = selectedFileIds.size > 0;
@@ -89,7 +84,7 @@ export const FileTable: React.FC = () => {
         sorter: (a, b) => a.lastModified - b.lastModified,
       },
     ],
-    []
+    [],
   );
 
   const rowSelection = {

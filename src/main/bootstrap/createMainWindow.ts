@@ -42,12 +42,12 @@ const setupConsoleLogger = (window: BrowserWindow, options: CreateMainWindowOpti
   let logStream: fs.FileHandle | null = null;
 
   fs.open(logFilePath, 'w')
-    .then(handle => {
+    .then((handle) => {
       logStream = handle;
       logger.info(`Browser console log will be saved to: ${logFilePath}`);
       return handle.write(`=== Browser Console Log - ${new Date().toISOString()} ===\n\n`);
     })
-    .catch(err => {
+    .catch((err) => {
       logger.warn('Failed to create console log file', { err });
     });
 
@@ -68,7 +68,7 @@ const setupConsoleLogger = (window: BrowserWindow, options: CreateMainWindowOpti
 
   window.on('closed', () => {
     if (logStream) {
-      logStream.close().catch(err => {
+      logStream.close().catch((err) => {
         logger.warn('Failed to close console log file', { err });
       });
       logStream = null;
@@ -81,7 +81,8 @@ const shouldShowDevTools = (env: NodeJS.ProcessEnv): boolean => {
   return flag === '1';
 };
 
-const isDevelopmentEnvironment = (env: NodeJS.ProcessEnv): boolean => env.NODE_ENV === 'development';
+const isDevelopmentEnvironment = (env: NodeJS.ProcessEnv): boolean =>
+  env.NODE_ENV === 'development';
 
 /**
  * Creates and configures the main application window. All Electron-specific behaviour stays here so

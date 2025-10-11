@@ -1,10 +1,5 @@
 import { create } from 'zustand';
-import type {
-  FileInfo,
-  FileScanOptions,
-  FileFilterOptions,
-  FileScanResult,
-} from '@shared/types';
+import type { FileInfo, FileScanOptions, FileFilterOptions, FileScanResult } from '@shared/types';
 
 /**
  * 文件工具状态
@@ -110,7 +105,7 @@ export const useFileToolStore = create<FileToolState>((set) => ({
       const removedSet = new Set(fileIds);
       const newFiles = state.scanResult.files.filter((f) => !removedSet.has(f.id));
       const newSelectedIds = new Set(
-        [...state.selectedFileIds].filter((id) => !removedSet.has(id))
+        [...state.selectedFileIds].filter((id) => !removedSet.has(id)),
       );
 
       return {

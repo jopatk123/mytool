@@ -38,7 +38,7 @@ const getDarkestEdgeIntensity = async (filePath: string): Promise<number> => {
   }
 
   for (let y = 0; y < height; y += 1) {
-    const leftOffset = (y * width) * channels;
+    const leftOffset = y * width * channels;
     const rightOffset = (y * width + (width - 1)) * channels;
     sampleIntensity(leftOffset);
     sampleIntensity(rightOffset);
@@ -83,9 +83,14 @@ describe('ImageAssetProcessor', () => {
 
     expect(result.originalPath).toBe(assets[0].filePath);
     expect(result.outputPath).toBe(assets[0].filePath);
-    expect(result.operationsApplied).toEqual(operations.map(operation => operation.type));
+    expect(result.operationsApplied).toEqual(operations.map((operation) => operation.type));
     expect(result.hash).toBeUndefined();
-    expect(await fs.access(result.outputPath).then(() => true).catch(() => false)).toBe(true);
+    expect(
+      await fs
+        .access(result.outputPath)
+        .then(() => true)
+        .catch(() => false),
+    ).toBe(true);
   });
 
   it('refreshes hash in place even when overwrite is disabled', async () => {
@@ -97,9 +102,7 @@ describe('ImageAssetProcessor', () => {
       dryRun: false,
     };
 
-    const operations: ImageBatchOperation[] = [
-      { type: 'hashRename', algorithm: 'sha1' },
-    ];
+    const operations: ImageBatchOperation[] = [{ type: 'hashRename', algorithm: 'sha1' }];
 
     const processor = new ImageAssetProcessor({ jobId: 'job-hash', options, operations });
 
@@ -118,7 +121,12 @@ describe('ImageAssetProcessor', () => {
     const recalculatedHash = createHash('sha1').update(updatedBuffer).digest('hex');
     expect(result.hash).toBe(recalculatedHash);
 
-    expect(await fs.access(result.outputPath).then(() => true).catch(() => false)).toBe(true);
+    expect(
+      await fs
+        .access(result.outputPath)
+        .then(() => true)
+        .catch(() => false),
+    ).toBe(true);
   });
 
   it('crops image according to provided pixels', async () => {
@@ -187,10 +195,15 @@ describe('ImageAssetProcessor', () => {
     expect(rotatedMetadata.width).toBeDefined();
     expect(rotatedMetadata.height).toBeDefined();
 
-    const diagonalLimit = Math.ceil(Math.sqrt((originalMetadata.width ?? 0) ** 2 + (originalMetadata.height ?? 0) ** 2));
+    const diagonalLimit = Math.ceil(
+      Math.sqrt((originalMetadata.width ?? 0) ** 2 + (originalMetadata.height ?? 0) ** 2),
+    );
     expect(rotatedMetadata.width ?? 0).toBeLessThanOrEqual(diagonalLimit);
     expect(rotatedMetadata.height ?? 0).toBeLessThanOrEqual(diagonalLimit);
-    expect((rotatedMetadata.width ?? 0) === (originalMetadata.width ?? 0) && (rotatedMetadata.height ?? 0) === (originalMetadata.height ?? 0)).toBe(false);
+    expect(
+      (rotatedMetadata.width ?? 0) === (originalMetadata.width ?? 0) &&
+        (rotatedMetadata.height ?? 0) === (originalMetadata.height ?? 0),
+    ).toBe(false);
     expect(rotatedMetadata.hasAlpha ?? false).toBe(false);
 
     const darkestEdge = await getDarkestEdgeIntensity(result.outputPath);

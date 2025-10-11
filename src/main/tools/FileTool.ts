@@ -47,7 +47,7 @@ export class FileTool implements ITool {
     // 如果 params 是一个包含 action 的对象，提取实际的 action
     let actualAction = action;
     let actualParams = params;
-    
+
     if (params && typeof params === 'object' && 'action' in params) {
       actualAction = (params as { action: string }).action;
       actualParams = params;
@@ -65,10 +65,7 @@ export class FileTool implements ITool {
       case 'deleteFiles':
         return this.deleteFiles((actualParams as { filePaths: string[] }).filePaths);
       default:
-        throw new AppError(
-          AppErrorCode.INVALID_ARGUMENT,
-          `Unknown action: ${actualAction}`
-        );
+        throw new AppError(AppErrorCode.INVALID_ARGUMENT, `Unknown action: ${actualAction}`);
     }
   }
 
@@ -83,7 +80,7 @@ export class FileTool implements ITool {
       logger.error('Failed to scan directory', { error, request });
       throw new AppError(
         AppErrorCode.EXECUTION_FAILED,
-        `扫描目录失败: ${error instanceof Error ? error.message : String(error)}`
+        `扫描目录失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -99,7 +96,7 @@ export class FileTool implements ITool {
       logger.error('Failed to export CSV', { error, request });
       throw new AppError(
         AppErrorCode.EXECUTION_FAILED,
-        `导出CSV失败: ${error instanceof Error ? error.message : String(error)}`
+        `导出CSV失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -115,7 +112,7 @@ export class FileTool implements ITool {
       logger.error('Failed to import CSV', { error, filePath });
       throw new AppError(
         AppErrorCode.EXECUTION_FAILED,
-        `导入CSV失败: ${error instanceof Error ? error.message : String(error)}`
+        `导入CSV失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -131,7 +128,7 @@ export class FileTool implements ITool {
       logger.error('Failed to rename files', { error });
       throw new AppError(
         AppErrorCode.EXECUTION_FAILED,
-        `重命名失败: ${error instanceof Error ? error.message : String(error)}`
+        `重命名失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -147,9 +144,8 @@ export class FileTool implements ITool {
       logger.error('Failed to delete files', { error });
       throw new AppError(
         AppErrorCode.EXECUTION_FAILED,
-        `删除失败: ${error instanceof Error ? error.message : String(error)}`
+        `删除失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
 }
-

@@ -31,7 +31,7 @@ export class FileExporter {
     try {
       const csvContent = this.generateCSV(request.files);
       await fs.writeFile(request.outputPath, csvContent, 'utf-8');
-      
+
       logger.info(`Successfully exported to ${request.outputPath}`);
     } catch (error) {
       logger.error('Failed to export CSV', { error, outputPath: request.outputPath });
@@ -47,7 +47,7 @@ export class FileExporter {
 
     // 添加 BOM 以支持 Excel 正确识别 UTF-8
     const BOM = '\uFEFF';
-    
+
     // 添加表头
     lines.push(this.CSV_HEADERS.join(','));
 

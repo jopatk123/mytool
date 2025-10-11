@@ -13,7 +13,10 @@ describe('registerLocalFileProtocol', () => {
   it('registers the protocol and resolves file paths', () => {
     const logger = createLogger();
     type RegisterHandler = RegisterLocalFileProtocolOptions['protocol']['registerFileProtocol'];
-    const registerFileProtocolSpy = vi.fn<Parameters<RegisterHandler>, ReturnType<RegisterHandler>>();
+    const registerFileProtocolSpy = vi.fn<
+      Parameters<RegisterHandler>,
+      ReturnType<RegisterHandler>
+    >();
     const protocol: RegisterLocalFileProtocolOptions['protocol'] = {
       registerFileProtocol: (...args) => registerFileProtocolSpy(...args),
     };
@@ -45,7 +48,10 @@ describe('registerLocalFileProtocol', () => {
   it('guards against malformed URLs', () => {
     const logger = createLogger();
     type RegisterHandler = RegisterLocalFileProtocolOptions['protocol']['registerFileProtocol'];
-    const registerFileProtocolSpy = vi.fn<Parameters<RegisterHandler>, ReturnType<RegisterHandler>>();
+    const registerFileProtocolSpy = vi.fn<
+      Parameters<RegisterHandler>,
+      ReturnType<RegisterHandler>
+    >();
     const protocol: RegisterLocalFileProtocolOptions['protocol'] = {
       registerFileProtocol: (...args) => registerFileProtocolSpy(...args),
     };

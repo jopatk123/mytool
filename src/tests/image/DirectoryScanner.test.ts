@@ -27,10 +27,14 @@ describe('DirectoryScanner', () => {
     await fs.mkdir(subDir, { recursive: true });
 
     // create images
-    await sharp({ create: { width: 32, height: 32, channels: 3, background: { r: 255, g: 0, b: 0 } } })
+    await sharp({
+      create: { width: 32, height: 32, channels: 3, background: { r: 255, g: 0, b: 0 } },
+    })
       .png()
       .toFile(path.join(rootDir, 'a.png'));
-    await sharp({ create: { width: 64, height: 64, channels: 3, background: { r: 0, g: 255, b: 0 } } })
+    await sharp({
+      create: { width: 64, height: 64, channels: 3, background: { r: 0, g: 255, b: 0 } },
+    })
       .jpeg()
       .toFile(path.join(subDir, 'b.jpg'));
 
@@ -47,7 +51,7 @@ describe('DirectoryScanner', () => {
     const result = await scanner.scan(rootDir, { includeSubdirectories: true });
 
     expect(result.assets.length).toBe(2);
-    const assetNames = result.assets.map(asset => asset.name).sort();
+    const assetNames = result.assets.map((asset) => asset.name).sort();
     expect(assetNames).toEqual(['a.png', 'b.jpg']);
     expect(result.totalFiles).toBeGreaterThanOrEqual(2);
     // 修改为检查 local-file:// 协议

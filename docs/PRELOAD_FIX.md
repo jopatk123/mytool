@@ -10,6 +10,7 @@ Error: module not found: ../shared/constants
 ```
 
 这导致：
+
 - `window.electronAPI` 未定义
 - 渲染进程无法与主进程通信
 - 所有工具功能失效
@@ -46,6 +47,7 @@ import { ELECTRON_API_VERSION } from '../shared/constants.js';
 ```
 
 **影响的文件：**
+
 - `src/main/preload.ts`
 - `src/main/main.ts`
 - `src/main/tools/ToolManager.ts`
@@ -58,18 +60,20 @@ import { ELECTRON_API_VERSION } from '../shared/constants.js';
 ### 2. 使用 esbuild 打包 preload 脚本
 
 **安装依赖：**
+
 ```bash
 npm install --save-dev esbuild
 ```
 
 **创建打包脚本** (`scripts/bundle-preload.cjs`):
+
 ```javascript
 const esbuild = require('esbuild');
 const path = require('path');
 
 await esbuild.build({
   entryPoints: [path.join(__dirname, '../src/main/preload.ts')],
-  bundle: true,          // 关键：打包所有依赖
+  bundle: true, // 关键：打包所有依赖
   platform: 'node',
   target: 'node18',
   format: 'cjs',
@@ -87,7 +91,7 @@ await esbuild.build({
 ```javascript
 const main = () => {
   const decision = needsRebuild(force);
-  
+
   if (decision.shouldBuild) {
     // 1. TypeScript 编译
     if (!runTscBuild(decision.forceEmit)) {
@@ -98,7 +102,7 @@ const main = () => {
       return;
     }
   }
-  
+
   verifyOutputs();
 };
 ```
@@ -130,6 +134,7 @@ function setupConsoleLogger(window: BrowserWindow): void {
 ### `scripts/verify-persistent-fix.sh`
 
 模拟全新克隆后的完整构建流程，验证：
+
 - TypeScript 配置正确
 - 源代码导入路径无 `.js` 扩展名
 - esbuild 依赖已安装
@@ -138,6 +143,7 @@ function setupConsoleLogger(window: BrowserWindow): void {
 - preload.js 已被打包且自包含
 
 运行验证：
+
 ```bash
 ./scripts/verify-persistent-fix.sh
 ```
@@ -145,6 +151,7 @@ function setupConsoleLogger(window: BrowserWindow): void {
 ## 修复效果
 
 ### 修复前
+
 ```
 ❌ Unable to load preload script
 ❌ Error: module not found: ../shared/constants
@@ -154,6 +161,7 @@ function setupConsoleLogger(window: BrowserWindow): void {
 ```
 
 ### 修复后
+
 ```
 ✅ preload 脚本正常加载
 ✅ window.electronAPI 正确暴露
@@ -180,6 +188,7 @@ npm run start        # 自动构建和打包，一切正常
    - 构建脚本正确配置
 
 2. **tsconfig.electron.json**
+
    ```json
    {
      "compilerOptions": {

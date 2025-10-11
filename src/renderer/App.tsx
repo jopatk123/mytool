@@ -7,11 +7,12 @@ import FileTool from './pages/tools/FileTool';
 import Settings from './pages/Settings';
 
 function App() {
-  type RouterFuture = NonNullable<Parameters<typeof createBrowserRouter>[1]> extends {
-    future?: infer F;
-  }
-    ? F
-    : never;
+  type RouterFuture =
+    NonNullable<Parameters<typeof createBrowserRouter>[1]> extends {
+      future?: infer F;
+    }
+      ? F
+      : never;
 
   const routerOptions: Parameters<typeof createBrowserRouter>[1] = {
     future: {
@@ -34,7 +35,7 @@ function App() {
         ],
       },
     ],
-    routerOptions
+    routerOptions,
   );
 
   return (

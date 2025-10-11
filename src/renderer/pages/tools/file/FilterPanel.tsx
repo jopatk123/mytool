@@ -39,17 +39,22 @@ export const FilterPanel: React.FC = () => {
               <Col span={12}>
                 <Space>
                   <Text>最小:</Text>
-                      <InputNumber
-                        min={0}
-                        // 当未设置时显示为空
-                        value={filter.minSize !== undefined ? filter.minSize / (1024 * 1024) : undefined}
-                        onChange={(value) =>
-                          updateFilter({ minSize: value !== undefined && value !== null ? value * 1024 * 1024 : undefined })
-                        }
-                        disabled={isScanning}
-                        addonAfter="MB"
-                        style={{ width: 150 }}
-                      />
+                  <InputNumber
+                    min={0}
+                    // 当未设置时显示为空
+                    value={
+                      filter.minSize !== undefined ? filter.minSize / (1024 * 1024) : undefined
+                    }
+                    onChange={(value) =>
+                      updateFilter({
+                        minSize:
+                          value !== undefined && value !== null ? value * 1024 * 1024 : undefined,
+                      })
+                    }
+                    disabled={isScanning}
+                    addonAfter="MB"
+                    style={{ width: 150 }}
+                  />
                 </Space>
               </Col>
               <Col span={12}>
@@ -58,9 +63,14 @@ export const FilterPanel: React.FC = () => {
                   <InputNumber
                     min={0}
                     // 当未设置时显示为空
-                    value={filter.maxSize !== undefined ? filter.maxSize / (1024 * 1024) : undefined}
+                    value={
+                      filter.maxSize !== undefined ? filter.maxSize / (1024 * 1024) : undefined
+                    }
                     onChange={(value) =>
-                      updateFilter({ maxSize: value !== undefined && value !== null ? value * 1024 * 1024 : undefined })
+                      updateFilter({
+                        maxSize:
+                          value !== undefined && value !== null ? value * 1024 * 1024 : undefined,
+                      })
                     }
                     disabled={isScanning}
                     addonAfter="MB"

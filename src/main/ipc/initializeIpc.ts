@@ -82,7 +82,7 @@ export const createIpcInitializer = (deps: IpcInitializationDependencies): (() =
       }
 
       const normalizedArgs = Array.isArray(entry.args)
-        ? entry.args.map(arg => toSafeJson(arg))
+        ? entry.args.map((arg) => toSafeJson(arg))
         : [];
 
       const normalizedEntry: LogEntry = {
@@ -96,9 +96,12 @@ export const createIpcInitializer = (deps: IpcInitializationDependencies): (() =
       observability.recordLog(normalizedEntry, 'renderer');
     });
 
-    register(IPCChannel.TOOL_EXECUTE, async (event: IpcMainInvokeEvent, toolId: string, params: unknown) => {
-      return toolManager.executeTool(toolId, params, { event, sender: event.sender });
-    });
+    register(
+      IPCChannel.TOOL_EXECUTE,
+      async (event: IpcMainInvokeEvent, toolId: string, params: unknown) => {
+        return toolManager.executeTool(toolId, params, { event, sender: event.sender });
+      },
+    );
 
     register(IPCChannel.FILE_SELECT, async (_event, options?: OpenDialogOptions) => {
       const window = getMainWindow();
@@ -121,25 +124,43 @@ export const createIpcInitializer = (deps: IpcInitializationDependencies): (() =
       return result.canceled ? null : result.filePath;
     });
 
-    register(IPCChannel.IMAGE_SCAN_DIRECTORY, async (event: IpcMainInvokeEvent, request: ImageScanRequest) => {
-      return toolManager.executeTool('image-tool', {
-        action: 'scanDirectory',
-        ...request,
-      }, { event, sender: event.sender });
-    });
+    register(
+      IPCChannel.IMAGE_SCAN_DIRECTORY,
+      async (event: IpcMainInvokeEvent, request: ImageScanRequest) => {
+        return toolManager.executeTool(
+          'image-tool',
+          {
+            action: 'scanDirectory',
+            ...request,
+          },
+          { event, sender: event.sender },
+        );
+      },
+    );
 
-    register(IPCChannel.IMAGE_JOB_START, async (event: IpcMainInvokeEvent, request: ImageJobRequest) => {
-      return toolManager.executeTool('image-tool', {
-        action: 'startBatchJob',
-        ...request,
-      }, { event, sender: event.sender });
-    });
+    register(
+      IPCChannel.IMAGE_JOB_START,
+      async (event: IpcMainInvokeEvent, request: ImageJobRequest) => {
+        return toolManager.executeTool(
+          'image-tool',
+          {
+            action: 'startBatchJob',
+            ...request,
+          },
+          { event, sender: event.sender },
+        );
+      },
+    );
 
     register(IPCChannel.IMAGE_JOB_CANCEL, async (event: IpcMainInvokeEvent, jobId: string) => {
-      return toolManager.executeTool('image-tool', {
-        action: 'cancelJob',
-        jobId,
-      }, { event, sender: event.sender });
+      return toolManager.executeTool(
+        'image-tool',
+        {
+          action: 'cancelJob',
+          jobId,
+        },
+        { event, sender: event.sender },
+      );
     });
 
     register(IPCChannel.OBSERVABILITY_GET_SNAPSHOT, async () => {

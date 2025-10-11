@@ -23,7 +23,7 @@ export class ImageTool implements ITool {
   readonly config: ToolConfig = {
     id: 'image-tool',
     name: '图片批量处理',
-  description: '批量扫描目录中的图片并执行压缩、尺寸调整、哈希刷新等操作',
+    description: '批量扫描目录中的图片并执行压缩、尺寸调整、哈希刷新等操作',
     icon: '🖼️',
     category: ToolCategory.IMAGE,
     enabled: true,
@@ -100,19 +100,22 @@ export class ImageTool implements ITool {
     logger.info('Scanning directory for images', request);
     const result = await this.scanner.scan(request.directory, request.options);
     this.scanCache.set(result.scanId, result);
-    const assetsMap = new Map(result.assets.map(asset => [asset.id, asset]));
+    const assetsMap = new Map(result.assets.map((asset) => [asset.id, asset]));
     this.assetCache.set(result.scanId, assetsMap);
     return result;
   }
 
-  private async handleStartBatchJob(request: ImageJobRequest, context?: ToolExecuteContext): Promise<{ jobId: string }> {
+  private async handleStartBatchJob(
+    request: ImageJobRequest,
+    context?: ToolExecuteContext,
+  ): Promise<{ jobId: string }> {
     const cache = this.assetCache.get(request.scanId);
     if (!cache) {
       throw new AppError(AppErrorCode.NOT_FOUND, `找不到扫描记录: ${request.scanId}`);
     }
 
     const assets = request.assetIds
-      .map(id => cache.get(id))
+      .map((id) => cache.get(id))
       .filter((asset): asset is ImageScanResult['assets'][number] => Boolean(asset));
 
     if (assets.length === 0) {
@@ -135,7 +138,11 @@ export class ImageTool implements ITool {
   }
 
   private async handleCancelJob(params: unknown): Promise<{ jobId: string; cancelled: boolean }> {
-    if (!params || typeof params !== 'object' || typeof (params as { jobId?: string }).jobId !== 'string') {
+    if (
+      !params ||
+      typeof params !== 'object' ||
+      typeof (params as { jobId?: string }).jobId !== 'string'
+    ) {
       throw new AppError(AppErrorCode.INVALID_ARGUMENT, '取消任务参数无效');
     }
 

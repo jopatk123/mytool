@@ -29,7 +29,7 @@ export function CompressPanel({
           <Text>输出格式：</Text>
           <Select
             value={format}
-            onChange={value => onFormatChange(value as CompressFormat)}
+            onChange={(value) => onFormatChange(value as CompressFormat)}
             disabled={!enabled}
             style={{ width: 160 }}
             options={[
@@ -47,7 +47,7 @@ export function CompressPanel({
             step={5}
             value={quality}
             disabled={!enabled}
-            onChange={value => onQualityChange(value as number)}
+            onChange={(value) => onQualityChange(value as number)}
           />
         </Space>
       </Space>

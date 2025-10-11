@@ -8,11 +8,14 @@ const normalizeExtension = (value: string): string => {
   return value.startsWith('.') ? value.slice(1).toLowerCase() : value.toLowerCase();
 };
 
-const computeHash = async (filePath: string, algorithm: 'md5' | 'sha1' | 'sha256' = 'sha256'): Promise<string> => {
+const computeHash = async (
+  filePath: string,
+  algorithm: 'md5' | 'sha1' | 'sha256' = 'sha256',
+): Promise<string> => {
   const hash = createHash(algorithm ?? 'sha256');
   return await new Promise<string>((resolve, reject) => {
     const stream = createReadStream(filePath);
-    stream.on('data', chunk => hash.update(chunk));
+    stream.on('data', (chunk) => hash.update(chunk));
     stream.on('error', reject);
     stream.on('end', () => resolve(hash.digest('hex')));
   });
@@ -97,7 +100,11 @@ const injectPngTextChunk = async (filePath: string, marker: string): Promise<voi
 
 const injectWebpMetadataChunk = async (filePath: string, marker: string): Promise<void> => {
   const buffer = await fs.readFile(filePath);
-  if (buffer.length < 12 || buffer.slice(0, 4).toString('ascii') !== 'RIFF' || buffer.slice(8, 12).toString('ascii') !== 'WEBP') {
+  if (
+    buffer.length < 12 ||
+    buffer.slice(0, 4).toString('ascii') !== 'RIFF' ||
+    buffer.slice(8, 12).toString('ascii') !== 'WEBP'
+  ) {
     await fs.appendFile(filePath, Buffer.from(`\n${marker}\n`, 'utf8'));
     return;
   }
@@ -117,7 +124,8 @@ const injectWebpMetadataChunk = async (filePath: string, marker: string): Promis
 };
 
 const createXmpPacket = (marker: string): Buffer => {
-  const payload = `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>` +
+  const payload =
+    `<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>` +
     `<x:xmpmeta xmlns:x="adobe:ns:meta/">` +
     `<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">` +
     `<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">` +
@@ -147,15 +155,11 @@ const CRC_TABLE = (() => {
   for (let i = 0; i < 256; i += 1) {
     let c = i;
     for (let j = 0; j < 8; j += 1) {
-      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
     }
     table[i] = c >>> 0;
   }
   return table;
 })();
 
-export {
-  applyHashRefresh,
-  computeHash,
-  normalizeExtension,
-};
+export { applyHashRefresh, computeHash, normalizeExtension };

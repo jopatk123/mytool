@@ -9,7 +9,7 @@ export const toSafeJson = (value: unknown): unknown => {
     return value;
   }
   if (Array.isArray(value)) {
-    return value.slice(0, 5).map(item => toSafeJson(item));
+    return value.slice(0, 5).map((item) => toSafeJson(item));
   }
   if (typeof value === 'object') {
     try {

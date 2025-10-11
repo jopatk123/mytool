@@ -51,7 +51,7 @@ describe('FileExporter', () => {
       expect(fs.writeFile).toHaveBeenCalledWith(
         request.outputPath,
         expect.stringContaining('完整路径'),
-        'utf-8'
+        'utf-8',
       );
     });
 
@@ -67,16 +67,16 @@ describe('FileExporter', () => {
 
       const writeCall = vi.mocked(fs.writeFile).mock.calls[0];
       const content = writeCall[1] as string;
-      
+
       // Check BOM
-      expect(content.charCodeAt(0)).toBe(0xFEFF);
+      expect(content.charCodeAt(0)).toBe(0xfeff);
     });
   });
 
   describe('generateDefaultFileName', () => {
     it('should generate valid filename with timestamp', () => {
       const filename = FileExporter.generateDefaultFileName();
-      
+
       expect(filename).toMatch(/^file-list-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.csv$/);
     });
   });

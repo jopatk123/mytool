@@ -37,7 +37,7 @@ describe('OperationPanel', () => {
     expect(screen.getByText('哈希算法：')).toBeTruthy();
     expect(screen.getByText('输出格式：')).toBeTruthy();
     expect(screen.getByText('模式：')).toBeTruthy();
-    
+
     // 展开其他面板来检查所有内容
     const resizeHeader = screen.getByText('尺寸调整');
     fireEvent.click(resizeHeader);
@@ -63,31 +63,31 @@ describe('OperationPanel', () => {
 
     const getAllSwitches = () => screen.getAllByRole('switch');
     const switches = getAllSwitches();
-    
+
     // 索引：0=hash, 1=resize, 2=resize(prevent), 3=crop, 4=compress, 5=rotate, 6=autoCrop, 7=overwrite
     const hashSwitch = switches[0];
     const resizeSwitch = switches[1];
     const compressSwitch = switches[4];
-    const rotateSwitch = switches[5]; 
+    const rotateSwitch = switches[5];
     const autoCropSwitch = switches[6];
 
     fireEvent.click(hashSwitch); // 禁用 hash rename (默认开启)
     fireEvent.click(resizeSwitch); // enable resize
-    
+
     // 获取所有spinbutton，启用resize后应该出现宽度和高度输入框
     const getAllInputs = () => screen.queryAllByRole('spinbutton');
     const resizeInputs = getAllInputs();
     if (resizeInputs.length >= 2) {
       fireEvent.change(resizeInputs[0], { target: { value: '512' } }); // 宽度
     }
-    
+
     if (compressSwitch) fireEvent.click(compressSwitch); // enable compress
     if (rotateSwitch) fireEvent.click(rotateSwitch); // enable rotate
-    
+
     // 切换到随机模式
     const randomRadio = screen.getByRole('radio', { name: '随机角度' });
     fireEvent.click(randomRadio);
-    
+
     if (autoCropSwitch) fireEvent.click(autoCropSwitch); // enable auto crop
 
     // 获取最小和最大角度输入框（应该在列表后面）
@@ -107,12 +107,14 @@ describe('OperationPanel', () => {
     expect(onRun).toHaveBeenCalledTimes(1);
     const payload = onRun.mock.calls[0][0];
     const types = payload.operations.map((operation: { type: string }) => operation.type);
-    
+
     // 验证包含 resize 和 rotate 操作
     expect(types).toContain('resize');
     expect(types).toContain('rotate');
 
-    const rotateOperation = payload.operations.find((operation: { type: string }) => operation.type === 'rotate');
+    const rotateOperation = payload.operations.find(
+      (operation: { type: string }) => operation.type === 'rotate',
+    );
     expect(rotateOperation).toMatchObject({
       mode: 'random',
       minAngle: -3,

@@ -9,13 +9,15 @@ export function resolveElectronAPI(): ElectronAPIWithMeta {
   const api = cachedApi ?? (window as Window & { electronAPI?: ElectronAPIWithMeta }).electronAPI;
 
   if (!api) {
-    throw new Error('electronAPI is not available. Ensure preload script is loaded and contextIsolation is enabled.');
+    throw new Error(
+      'electronAPI is not available. Ensure preload script is loaded and contextIsolation is enabled.',
+    );
   }
 
   if (api.version !== ELECTRON_API_VERSION) {
     console.warn(
       `[electronAPI] version mismatch: expected ${ELECTRON_API_VERSION}, actual ${api.version}. ` +
-        'Please verify main and renderer are built from the same commit.'
+        'Please verify main and renderer are built from the same commit.',
     );
   }
 
@@ -43,16 +45,20 @@ const electronAPI: ElectronAPI = Object.freeze({
   selectFile: (options?: Parameters<ElectronAPI['selectFile']>[0]) => getRaw().selectFile(options),
   saveFile: (options?: Parameters<ElectronAPI['saveFile']>[0]) => getRaw().saveFile(options),
   scanImages: (request: Parameters<ElectronAPI['scanImages']>[0]) => getRaw().scanImages(request),
-  startImageJob: (request: Parameters<ElectronAPI['startImageJob']>[0]) => getRaw().startImageJob(request),
-  cancelImageJob: (jobId: Parameters<ElectronAPI['cancelImageJob']>[0]) => getRaw().cancelImageJob(jobId),
-  onImageJobEvent: (callback: Parameters<ElectronAPI['onImageJobEvent']>[0]) => getRaw().onImageJobEvent(callback),
+  startImageJob: (request: Parameters<ElectronAPI['startImageJob']>[0]) =>
+    getRaw().startImageJob(request),
+  cancelImageJob: (jobId: Parameters<ElectronAPI['cancelImageJob']>[0]) =>
+    getRaw().cancelImageJob(jobId),
+  onImageJobEvent: (callback: Parameters<ElectronAPI['onImageJobEvent']>[0]) =>
+    getRaw().onImageJobEvent(callback),
   scanFiles: (request: Parameters<ElectronAPI['scanFiles']>[0]) => getRaw().scanFiles(request),
   exportFilesToCSV: (request: Parameters<ElectronAPI['exportFilesToCSV']>[0]) =>
     getRaw().exportFilesToCSV(request),
   importCSV: (filePath: Parameters<ElectronAPI['importCSV']>[0]) => getRaw().importCSV(filePath),
   renameFiles: (tasks: Parameters<ElectronAPI['renameFiles']>[0]) => getRaw().renameFiles(tasks),
   deleteFiles: (paths: Parameters<ElectronAPI['deleteFiles']>[0]) => getRaw().deleteFiles(paths),
-  reportError: (payload: Parameters<ElectronAPI['reportError']>[0]) => getRaw().reportError(payload),
+  reportError: (payload: Parameters<ElectronAPI['reportError']>[0]) =>
+    getRaw().reportError(payload),
   reportLog: (entry: RendererLogPayload) => getRaw().reportLog(entry),
   getObservabilitySnapshot: () => getRaw().getObservabilitySnapshot(),
 }) as ElectronAPI;

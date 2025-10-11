@@ -59,7 +59,7 @@ const invoke = async <T>(channel: IPCChannel, ...args: unknown[]): Promise<T> =>
 const jobEventListeners = new Set<(event: ImageJobEvent) => void>();
 
 ipcRenderer.on(IPCChannel.IMAGE_JOB_EVENT, (_event, payload: ImageJobEvent) => {
-  jobEventListeners.forEach(listener => {
+  jobEventListeners.forEach((listener) => {
     try {
       listener(payload);
     } catch (error) {
@@ -77,22 +77,20 @@ const electronAPI: ElectronAPI = Object.freeze({
 
   // 工具相关
   getToolList: () => invoke<ToolConfig[]>(IPCChannel.TOOL_GET_LIST),
-  executeTool: (toolId: string, params: unknown) => 
+  executeTool: (toolId: string, params: unknown) =>
     invoke<unknown>(IPCChannel.TOOL_EXECUTE, toolId, params),
 
   // 文件操作
-  selectFile: (options?: OpenDialogOptions) => 
+  selectFile: (options?: OpenDialogOptions) =>
     invoke<string[] | null>(IPCChannel.FILE_SELECT, options),
-  saveFile: (options?: SaveDialogOptions) => 
-    invoke<string | null>(IPCChannel.FILE_SAVE, options),
+  saveFile: (options?: SaveDialogOptions) => invoke<string | null>(IPCChannel.FILE_SAVE, options),
 
   // 图片处理
   scanImages: (request: ImageScanRequest) =>
     invoke<ImageScanResult>(IPCChannel.IMAGE_SCAN_DIRECTORY, request),
   startImageJob: (request: ImageJobRequest) =>
     invoke<{ jobId: string }>(IPCChannel.IMAGE_JOB_START, request),
-  cancelImageJob: (jobId: string) =>
-    invoke<void>(IPCChannel.IMAGE_JOB_CANCEL, jobId),
+  cancelImageJob: (jobId: string) => invoke<void>(IPCChannel.IMAGE_JOB_CANCEL, jobId),
   onImageJobEvent: (callback: (event: ImageJobEvent) => void) => {
     jobEventListeners.add(callback);
     return () => {
@@ -102,20 +100,34 @@ const electronAPI: ElectronAPI = Object.freeze({
 
   // 文件工具
   scanFiles: (request: FileScanRequest) =>
-    invoke<FileScanResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'scanFiles', ...request }),
+    invoke<FileScanResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', {
+      action: 'scanFiles',
+      ...request,
+    }),
   exportFilesToCSV: (request: FileExportRequest) =>
     invoke<void>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'exportToCSV', ...request }),
   importCSV: (filePath: string) =>
-    invoke<FileImportResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'importFromCSV', filePath }),
+    invoke<FileImportResult>(IPCChannel.TOOL_EXECUTE, 'file-tool', {
+      action: 'importFromCSV',
+      filePath,
+    }),
   renameFiles: (tasks: FileRenameTask[]) =>
-    invoke<FileRenameResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'renameFiles', tasks }),
+    invoke<FileRenameResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', {
+      action: 'renameFiles',
+      tasks,
+    }),
   deleteFiles: (filePaths: string[]) =>
-    invoke<FileDeleteResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', { action: 'deleteFiles', filePaths }),
+    invoke<FileDeleteResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', {
+      action: 'deleteFiles',
+      filePaths,
+    }),
 
   // 错误和日志
-  reportError: (errorInfo: RendererErrorPayload) => ipcRenderer.send(IPCChannel.RENDERER_ERROR, errorInfo),
+  reportError: (errorInfo: RendererErrorPayload) =>
+    ipcRenderer.send(IPCChannel.RENDERER_ERROR, errorInfo),
   reportLog: (entry: RendererLogPayload) => ipcRenderer.send(IPCChannel.LOG_EVENT, entry),
-  getObservabilitySnapshot: () => invoke<ObservabilitySnapshot>(IPCChannel.OBSERVABILITY_GET_SNAPSHOT),
+  getObservabilitySnapshot: () =>
+    invoke<ObservabilitySnapshot>(IPCChannel.OBSERVABILITY_GET_SNAPSHOT),
 });
 
 // 暴露 API 到 window 对象

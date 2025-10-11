@@ -46,9 +46,7 @@ export function OutputControls({
             <Button icon={<FolderOpenOutlined />} onClick={onSelectOutputDirectory}>
               选择输出目录
             </Button>
-            {outputDirectory && (
-              <Button onClick={onClearOutputDirectory}>清除</Button>
-            )}
+            {outputDirectory && <Button onClick={onClearOutputDirectory}>清除</Button>}
           </Space>
           {outputDirectory ? (
             <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -63,7 +61,12 @@ export function OutputControls({
       )}
 
       <Space>
-        <Button type="primary" onClick={onRun} disabled={disabled || running || !canRun} loading={running}>
+        <Button
+          type="primary"
+          onClick={onRun}
+          disabled={disabled || running || !canRun}
+          loading={running}
+        >
           开始批量处理
         </Button>
         {running && (

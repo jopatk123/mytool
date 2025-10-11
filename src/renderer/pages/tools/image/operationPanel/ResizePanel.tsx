@@ -38,14 +38,14 @@ export function ResizePanel({
           <InputNumber
             min={1}
             value={width ?? undefined}
-            onChange={value => onWidthChange(value ?? null)}
+            onChange={(value) => onWidthChange(value ?? null)}
             disabled={!enabled}
           />
           <Text>高度 (px)：</Text>
           <InputNumber
             min={1}
             value={height ?? undefined}
-            onChange={value => onHeightChange(value ?? null)}
+            onChange={(value) => onHeightChange(value ?? null)}
             disabled={!enabled}
           />
         </Space>
@@ -53,7 +53,7 @@ export function ResizePanel({
           <Text>缩放模式：</Text>
           <Select
             value={fit}
-            onChange={value => onFitChange(value as ResizeFit)}
+            onChange={(value) => onFitChange(value as ResizeFit)}
             disabled={!enabled}
             style={{ width: 180 }}
             options={[
@@ -66,7 +66,11 @@ export function ResizePanel({
           />
         </Space>
         <Space>
-          <Switch checked={withoutEnlargement} onChange={onWithoutEnlargementChange} disabled={!enabled} />
+          <Switch
+            checked={withoutEnlargement}
+            onChange={onWithoutEnlargementChange}
+            disabled={!enabled}
+          />
           <Text>避免放大原图</Text>
         </Space>
       </Space>

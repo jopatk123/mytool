@@ -45,7 +45,7 @@ function Home() {
       <div>
         <Title level={3}>工具列表</Title>
         <Row gutter={[16, 16]}>
-          {tools.map(tool => (
+          {tools.map((tool) => (
             <Col key={tool.id} span={8}>
               <Card
                 hoverable
@@ -72,9 +72,7 @@ function Home() {
                 }}
               >
                 <Space direction="vertical" size="small">
-                  <div style={{ fontSize: '32px' }}>
-                    {tool.icon || getIcon(tool.category)}
-                  </div>
+                  <div style={{ fontSize: '32px' }}>{tool.icon || getIcon(tool.category)}</div>
                   <Title level={4} style={{ margin: 0 }}>
                     {tool.name}
                   </Title>

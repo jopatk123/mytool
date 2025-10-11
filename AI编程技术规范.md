@@ -2,22 +2,22 @@
 
 ## 技术基线一览
 
-| 模块         | 推荐组合                                      | 可替换/扩展                               | 备注                                                                      |
-| ------------ | --------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------- |
-| 前端应用层   | Vue 3 + Vite + Element Plus + Electron        | React + Vite + Electron / Svelte + Electron | 选择支持热更新、组件化、TypeScript 的现代框架；统一使用模块化目录与别名。 |
-| 状态与路由   | Pinia + Vue Router + electron-store           | Redux Toolkit、Zustand、TanStack Router   | 从业务复杂度出发选择状态方案，需考虑主进程与渲染进程状态同步机制。                            |
-| 进程通信     | ipcRenderer + ipcMain + 自定义通信层          | electron-redux、comlink                   | 统一通信格式、错误处理与权限控制，敏感操作必须在主进程执行。                            |
-| 样式系统     | Sass + 全局变量注入 + electron-css-inject     | Tailwind、UnoCSS、CSS Modules             | 保持主题变量与设计体系一致，支持系统主题跟随（亮色/暗色模式）。                       |
-| 前端测试     | Vitest + @vue/test-utils + jsdom + spectron   | Jest、Playwright、Cypress                 | 单元、组件测试覆盖核心逻辑，端到端测试需验证跨进程交互。                                  |
-| 代码质量     | ESLint + Prettier + Stylelint（可选）         | Biome、Rome                               | 通过统一脚本执行 lint/format，确保输出一致。                              |
-| 主进程框架   | Electron 28+ + electron-builder               | electron-forge、electron-packager         | 需支持自动更新、多平台打包与原生模块集成。                |
-| 数据访问     | SQLite3 + typeorm + electron-store（轻量数据） | Prisma、Knex、LevelDB                     | 本地数据库需考虑路径管理（用户数据目录）与迁移机制，敏感数据加密存储。                      |
-| 文件与媒体   | fs-extra + Sharp + exifr + electron-dialog    | node-stream、ffmpeg-static                | 统一文件操作权限处理，通过主进程调用系统对话框，避免渲染进程直接操作文件系统。                               |
-| 系统集成     | electron-clipboard + electron-power-monitor   | node-ffi、robotjs                         | 系统级API需封装抽象层，处理不同平台差异（Windows/macOS/Linux）。                              |
-| 后端能力     | 内置 Express 服务（可选）                     | Fastify、NestJS（嵌入式）                 | 仅在需要本地API服务时引入，优先使用进程内通信而非网络接口。                                                |
-| 测试体系     | Jest（主进程） + Vitest（渲染进程） + spectron | Mocha、Playwright                        | 分别测试主进程、渲染进程及跨进程交互，覆盖自动更新等桌面特性。                              |
-| 日志与监控   | winston + electron-log + 崩溃报告            | Pino、Sentry（桌面版）                    | 日志需写入用户数据目录，支持日志轮转与崩溃自动上报。                                  |
-| 打包与部署   | electron-builder + 签名工具                   | electron-forge、nsis/inno setup           | 需支持多平台打包、自动更新服务器配置与代码签名流程。                           |
+| 模块       | 推荐组合                                       | 可替换/扩展                                 | 备注                                                                           |
+| ---------- | ---------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| 前端应用层 | Vue 3 + Vite + Element Plus + Electron         | React + Vite + Electron / Svelte + Electron | 选择支持热更新、组件化、TypeScript 的现代框架；统一使用模块化目录与别名。      |
+| 状态与路由 | Pinia + Vue Router + electron-store            | Redux Toolkit、Zustand、TanStack Router     | 从业务复杂度出发选择状态方案，需考虑主进程与渲染进程状态同步机制。             |
+| 进程通信   | ipcRenderer + ipcMain + 自定义通信层           | electron-redux、comlink                     | 统一通信格式、错误处理与权限控制，敏感操作必须在主进程执行。                   |
+| 样式系统   | Sass + 全局变量注入 + electron-css-inject      | Tailwind、UnoCSS、CSS Modules               | 保持主题变量与设计体系一致，支持系统主题跟随（亮色/暗色模式）。                |
+| 前端测试   | Vitest + @vue/test-utils + jsdom + spectron    | Jest、Playwright、Cypress                   | 单元、组件测试覆盖核心逻辑，端到端测试需验证跨进程交互。                       |
+| 代码质量   | ESLint + Prettier + Stylelint（可选）          | Biome、Rome                                 | 通过统一脚本执行 lint/format，确保输出一致。                                   |
+| 主进程框架 | Electron 28+ + electron-builder                | electron-forge、electron-packager           | 需支持自动更新、多平台打包与原生模块集成。                                     |
+| 数据访问   | SQLite3 + typeorm + electron-store（轻量数据） | Prisma、Knex、LevelDB                       | 本地数据库需考虑路径管理（用户数据目录）与迁移机制，敏感数据加密存储。         |
+| 文件与媒体 | fs-extra + Sharp + exifr + electron-dialog     | node-stream、ffmpeg-static                  | 统一文件操作权限处理，通过主进程调用系统对话框，避免渲染进程直接操作文件系统。 |
+| 系统集成   | electron-clipboard + electron-power-monitor    | node-ffi、robotjs                           | 系统级API需封装抽象层，处理不同平台差异（Windows/macOS/Linux）。               |
+| 后端能力   | 内置 Express 服务（可选）                      | Fastify、NestJS（嵌入式）                   | 仅在需要本地API服务时引入，优先使用进程内通信而非网络接口。                    |
+| 测试体系   | Jest（主进程） + Vitest（渲染进程） + spectron | Mocha、Playwright                           | 分别测试主进程、渲染进程及跨进程交互，覆盖自动更新等桌面特性。                 |
+| 日志与监控 | winston + electron-log + 崩溃报告              | Pino、Sentry（桌面版）                      | 日志需写入用户数据目录，支持日志轮转与崩溃自动上报。                           |
+| 打包与部署 | electron-builder + 签名工具                    | electron-forge、nsis/inno setup             | 需支持多平台打包、自动更新服务器配置与代码签名流程。                           |
 
 ---
 

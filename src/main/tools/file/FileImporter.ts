@@ -20,7 +20,7 @@ export class FileImporter {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const result = this.parseCSV(content);
-      
+
       logger.info(`Imported ${result.tasks.length} tasks, ${result.invalidRows} invalid rows`);
       return result;
     } catch (error) {
@@ -38,20 +38,20 @@ export class FileImporter {
 
     // 移除 BOM（如果存在）
     const cleanContent = content.replace(/^\uFEFF/, '');
-    
+
     // 按行分割
     const lines = cleanContent.split(/\r?\n/);
-    
+
     // 跳过表头（第一行）
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       // 跳过空行
       if (!line) continue;
 
       try {
         const fields = this.parseCSVLine(line);
-        
+
         // CSV格式：完整路径, 文件名称, 重命名后名称, 文件大小, 扩展名, 最后修改时间
         if (fields.length < 3) {
           invalidRows++;
@@ -170,7 +170,7 @@ export class FileImporter {
     // 检查文件扩展名是否保持一致（可选，根据需求调整）
     const originalExt = path.extname(task.originalName);
     const newExt = path.extname(task.newName);
-    
+
     if (originalExt && !newExt) {
       logger.warn('New name missing extension', { task });
     }

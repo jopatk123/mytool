@@ -1,8 +1,20 @@
 import type { OpenDialogOptions, SaveDialogOptions } from 'electron';
 import type { ToolConfig } from './tool';
-import type { FileDeleteResult, FileExportRequest, FileImportResult, FileRenameResult, FileRenameTask, FileScanRequest, FileScanResult } from './file';
+import type {
+  FileDeleteResult,
+  FileExportRequest,
+  FileImportResult,
+  FileRenameResult,
+  FileRenameTask,
+  FileScanRequest,
+  FileScanResult,
+} from './file';
 import type { ImageJobEvent, ImageJobRequest, ImageScanRequest, ImageScanResult } from './image';
-import type { ObservabilitySnapshot, RendererErrorPayload, RendererLogPayload } from './observability';
+import type {
+  ObservabilitySnapshot,
+  RendererErrorPayload,
+  RendererLogPayload,
+} from './observability';
 
 /**
  * preload 暴露给渲染进程的 API（只读）

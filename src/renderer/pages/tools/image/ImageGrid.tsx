@@ -20,7 +20,7 @@ export function ImageGrid({ assets, selectedAssetIds, onToggle }: ImageGridProps
       setCurrentImageId(assets[0].id);
     } else if (assets.length === 0) {
       setCurrentImageId(null);
-    } else if (currentImageId && !assets.find(a => a.id === currentImageId)) {
+    } else if (currentImageId && !assets.find((a) => a.id === currentImageId)) {
       // 如果当前选中的图片不在列表中，重置为第一张
       setCurrentImageId(assets[0]?.id || null);
     }
@@ -30,15 +30,18 @@ export function ImageGrid({ assets, selectedAssetIds, onToggle }: ImageGridProps
     return <Empty description="没有找到图片,请重新选择文件夹" />;
   }
 
-  const currentImage = assets.find(asset => asset.id === currentImageId);
+  const currentImage = assets.find((asset) => asset.id === currentImageId);
 
   return (
     <Row gutter={16} style={{ height: '100%' }}>
       {/* 左侧图片列表 */}
-      <Col span={8} style={{ height: '600px', overflowY: 'auto', borderRight: '1px solid #f0f0f0' }}>
+      <Col
+        span={8}
+        style={{ height: '600px', overflowY: 'auto', borderRight: '1px solid #f0f0f0' }}
+      >
         <List
           dataSource={assets}
-          renderItem={item => {
+          renderItem={(item) => {
             const checked = selectedAssetIds.includes(item.id);
             const isActive = item.id === currentImageId;
             return (
@@ -86,13 +89,24 @@ export function ImageGrid({ assets, selectedAssetIds, onToggle }: ImageGridProps
       </Col>
 
       {/* 右侧图片预览 */}
-      <Col span={16} style={{ height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Col
+        span={16}
+        style={{ height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
         {currentImage ? (
           <Card
             style={{ width: '100%', height: '100%' }}
-            bodyStyle={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            styles={{ body: { height: '100%', display: 'flex', flexDirection: 'column' } }}
           >
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
               <Image
                 src={currentImage.fileUrl}
                 alt={currentImage.name}

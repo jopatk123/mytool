@@ -27,7 +27,7 @@ export class FileScanner {
    */
   static async scanDirectory(
     directory: string,
-    options?: FileScanOptions
+    options?: FileScanOptions,
   ): Promise<FileScanResult> {
     const scanId = randomUUID();
     const startTime = Date.now();
@@ -36,7 +36,7 @@ export class FileScanner {
       includeSubdirectories: options?.includeSubdirectories ?? false,
       maxConcurrency: Math.max(
         1,
-        Math.min(options?.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY, MAX_CONCURRENCY_CAP)
+        Math.min(options?.maxConcurrency ?? DEFAULT_MAX_CONCURRENCY, MAX_CONCURRENCY_CAP),
       ),
       followSymlinks: options?.followSymlinks ?? false,
       excludeHidden: options?.excludeHidden ?? false,
@@ -87,14 +87,12 @@ export class FileScanner {
     rootDir: string,
     currentDir: string,
     settings: ScanSettings,
-    visited: Set<string>
+    visited: Set<string>,
   ): Promise<FileInfo[]> {
     const files: FileInfo[] = [];
 
     try {
-      const realPath = await fs
-        .realpath(currentDir)
-        .catch(() => currentDir);
+      const realPath = await fs.realpath(currentDir).catch(() => currentDir);
 
       if (visited.has(realPath)) {
         logger.warn('Detected circular directory reference, skipping', {
@@ -146,7 +144,7 @@ export class FileScanner {
       const fileInfos = await this.createFileInfosConcurrently(
         rootDir,
         filePaths,
-        settings.maxConcurrency
+        settings.maxConcurrency,
       );
       files.push(...fileInfos);
 
@@ -169,7 +167,7 @@ export class FileScanner {
   private static async createFileInfosConcurrently(
     rootDir: string,
     filePaths: string[],
-    maxConcurrency: number
+    maxConcurrency: number,
   ): Promise<FileInfo[]> {
     if (filePaths.length === 0) {
       return [];
@@ -201,7 +199,7 @@ export class FileScanner {
 
   private static async resolveSymlinks(
     symlinkPaths: string[],
-    settings: ScanSettings
+    settings: ScanSettings,
   ): Promise<{ files: string[]; directories: string[] }> {
     const files: string[] = [];
     const directories: string[] = [];
@@ -278,7 +276,7 @@ export class FileScanner {
           directory,
         };
         return fileInfo;
-      })
+      }),
     );
 
     // 过滤成功的结果

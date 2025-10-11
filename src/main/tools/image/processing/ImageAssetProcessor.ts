@@ -2,7 +2,13 @@ import * as path from 'node:path';
 import { promises as fs } from 'node:fs';
 import type { ImageAsset, ImageBatchOperation, ImageJobItemResult } from '@shared/types';
 import { JobOptions } from '../job/JobOptions';
-import { buildOutputPath, createTempFilePath, ensureDirectory, generateUniquePath, moveFileSafe } from './fileUtils';
+import {
+  buildOutputPath,
+  createTempFilePath,
+  ensureDirectory,
+  generateUniquePath,
+  moveFileSafe,
+} from './fileUtils';
 import { applyHashRefresh, computeHash, normalizeExtension } from './hashUtils';
 import { OperationType, runSharpOperations } from './sharpOperations';
 
@@ -35,7 +41,7 @@ export class ImageAssetProcessor {
         assetId: asset.id,
         originalPath: asset.filePath,
         outputPath: asset.filePath,
-        operationsApplied: this.operations.map(operation => operation.type),
+        operationsApplied: this.operations.map((operation) => operation.type),
       };
     }
 
@@ -125,7 +131,7 @@ export class ImageAssetProcessor {
   }
 
   private findOperation<T extends ImageBatchOperation>(type: T['type']): T | undefined {
-    return this.operations.find(operation => operation.type === type) as T | undefined;
+    return this.operations.find((operation) => operation.type === type) as T | undefined;
   }
 }
 

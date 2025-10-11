@@ -40,7 +40,8 @@ const LEVEL_CONSOLE: Record<LogLevel, keyof Console> = {
 };
 
 const getRuntimeConfig = (): Record<string, string> | undefined => {
-  const globalScope = typeof globalThis === 'object' ? (globalThis as Record<string, unknown>) : undefined;
+  const globalScope =
+    typeof globalThis === 'object' ? (globalThis as Record<string, unknown>) : undefined;
   const candidate = globalScope?.['__LOG_CONFIG__'];
   if (candidate && typeof candidate === 'object') {
     return candidate as Record<string, string>;
@@ -104,7 +105,7 @@ export const setGlobalLogLevel = (level: LogLevel): void => {
 
 export const getGlobalLogLevel = (): LogLevel => globalConfig.level;
 
-export const addLogListener = (listener: (entry: LogEntry) => void): () => void => {
+export const addLogListener = (listener: (entry: LogEntry) => void): (() => void) => {
   listeners.add(listener);
   return () => listeners.delete(listener);
 };
@@ -161,8 +162,8 @@ class Logger {
     const tsSegment = globalConfig.enableTimestamp ? `[${formatTimestamp(timestamp)}]` : '';
     const formattedMessage = `${prefix} ${tsSegment} ${emoji} ${message}`.trim();
 
-  const method = (console[consoleMethod] ?? console.log) as (...logArgs: unknown[]) => void;
-  method(formattedMessage, ...args);
+    const method = (console[consoleMethod] ?? console.log) as (...logArgs: unknown[]) => void;
+    method(formattedMessage, ...args);
 
     const entry: LogEntry = {
       timestamp,
@@ -172,7 +173,7 @@ class Logger {
       args,
     };
 
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       try {
         listener(entry);
       } catch (listenerError) {
@@ -182,6 +183,7 @@ class Logger {
   }
 }
 
-export const createLogger = (prefix: string, options?: LoggerOptions): Logger => new Logger(prefix, options);
+export const createLogger = (prefix: string, options?: LoggerOptions): Logger =>
+  new Logger(prefix, options);
 
 export default Logger;

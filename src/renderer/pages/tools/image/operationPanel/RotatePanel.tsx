@@ -40,7 +40,7 @@ export function RotatePanel({
           <Text>模式：</Text>
           <Radio.Group
             value={mode}
-            onChange={event => onModeChange(event.target.value as ImageRotationMode)}
+            onChange={(event) => onModeChange(event.target.value as ImageRotationMode)}
             disabled={!enabled}
           >
             <Radio.Button value="fixed">固定角度</Radio.Button>
@@ -55,7 +55,7 @@ export function RotatePanel({
               max={360}
               step={1}
               value={angle}
-              onChange={value => onAngleChange(value ?? 0)}
+              onChange={(value) => onAngleChange(value ?? 0)}
               disabled={!enabled}
             />
           </Space>
@@ -68,7 +68,7 @@ export function RotatePanel({
                 max={10}
                 step={0.5}
                 value={minAngle}
-                onChange={value => onMinAngleChange(value ?? 0)}
+                onChange={(value) => onMinAngleChange(value ?? 0)}
                 disabled={!enabled}
               />
             </Space>
@@ -79,11 +79,13 @@ export function RotatePanel({
                 max={10}
                 step={0.5}
                 value={maxAngle}
-                onChange={value => onMaxAngleChange(value ?? 0)}
+                onChange={(value) => onMaxAngleChange(value ?? 0)}
                 disabled={!enabled}
               />
             </Space>
-            <Text type="secondary">随机角度范围限定在 -10° 到 10°，每张图片会应用区间内的随机角度。</Text>
+            <Text type="secondary">
+              随机角度范围限定在 -10° 到 10°，每张图片会应用区间内的随机角度。
+            </Text>
           </Space>
         )}
         <Space>

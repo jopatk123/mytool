@@ -80,11 +80,7 @@ export const FolderSelector: React.FC = () => {
     <div style={{ marginBottom: 16 }}>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Space>
-          <Button
-            icon={<FolderOpenOutlined />}
-            onClick={handleSelectFolder}
-            disabled={isScanning}
-          >
+          <Button icon={<FolderOpenOutlined />} onClick={handleSelectFolder} disabled={isScanning}>
             选择文件夹
           </Button>
           <Checkbox

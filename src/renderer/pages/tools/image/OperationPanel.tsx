@@ -21,7 +21,13 @@ interface OperationPanelProps {
   onCancel(): void;
 }
 
-export function OperationPanel({ disabled, running, assetCount, onRun, onCancel }: OperationPanelProps) {
+export function OperationPanel({
+  disabled,
+  running,
+  assetCount,
+  onRun,
+  onCancel,
+}: OperationPanelProps) {
   const electronAPI = useElectronAPI();
 
   const [enableHashRename, setEnableHashRename] = useState(false);
@@ -30,7 +36,9 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
   const [enableResize, setEnableResize] = useState(false);
   const [resizeWidth, setResizeWidth] = useState<number | null>(null);
   const [resizeHeight, setResizeHeight] = useState<number | null>(null);
-  const [resizeFit, setResizeFit] = useState<'cover' | 'contain' | 'inside' | 'outside' | 'fill'>('inside');
+  const [resizeFit, setResizeFit] = useState<'cover' | 'contain' | 'inside' | 'outside' | 'fill'>(
+    'inside',
+  );
   const [preventEnlarge, setPreventEnlarge] = useState(true);
 
   const [enableCompress, setEnableCompress] = useState(false);
@@ -89,14 +97,17 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
   }, [enableHashRename, overwrite, outputDirectory]);
 
   const canRun = useMemo(() => {
-    const cropValues = [cropTop, cropBottom, cropLeft, cropRight].map(value => clampCropInput(value));
-    const hasCrop = enableCrop && cropValues.some(value => value > 0);
+    const cropValues = [cropTop, cropBottom, cropLeft, cropRight].map((value) =>
+      clampCropInput(value),
+    );
+    const hasCrop = enableCrop && cropValues.some((value) => value > 0);
 
     const randomMin = clampRandomAngle(rotateMinAngle);
     const randomMax = clampRandomAngle(rotateMaxAngle);
     const randomRangeValid = randomMin <= randomMax;
 
-    const hasOperation = enableHashRename || enableResize || enableCompress || hasCrop || enableRotate;
+    const hasOperation =
+      enableHashRename || enableResize || enableCompress || hasCrop || enableRotate;
     if (!hasOperation) {
       return false;
     }
@@ -252,13 +263,11 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
     <Card
       title="批量操作设置"
       extra={
-        <Text type="secondary">
-          {assetCount > 0 ? `已选择 ${assetCount} 张图片` : '暂无图片'}
-        </Text>
+        <Text type="secondary">{assetCount > 0 ? `已选择 ${assetCount} 张图片` : '暂无图片'}</Text>
       }
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Collapse bordered={false} defaultActiveKey={["hash", "compress", "rotate"]}>
+        <Collapse bordered={false} defaultActiveKey={['hash', 'compress', 'rotate']}>
           {HashPanel({
             enabled: enableHashRename,
             onToggle: setEnableHashRename,
@@ -273,7 +282,7 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
             onWidthChange: setResizeWidth,
             onHeightChange: setResizeHeight,
             fit: resizeFit,
-            onFitChange: value => setResizeFit(value),
+            onFitChange: (value) => setResizeFit(value),
             withoutEnlargement: preventEnlarge,
             onWithoutEnlargementChange: setPreventEnlarge,
           })}
@@ -284,30 +293,30 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
             bottom: cropBottom,
             left: cropLeft,
             right: cropRight,
-            onTopChange: value => setCropTop(clampCropInput(value)),
-            onBottomChange: value => setCropBottom(clampCropInput(value)),
-            onLeftChange: value => setCropLeft(clampCropInput(value)),
-            onRightChange: value => setCropRight(clampCropInput(value)),
+            onTopChange: (value) => setCropTop(clampCropInput(value)),
+            onBottomChange: (value) => setCropBottom(clampCropInput(value)),
+            onLeftChange: (value) => setCropLeft(clampCropInput(value)),
+            onRightChange: (value) => setCropRight(clampCropInput(value)),
           })}
           {CompressPanel({
             enabled: enableCompress,
             onToggle: setEnableCompress,
             format: compressFormat,
-            onFormatChange: value => setCompressFormat(value),
+            onFormatChange: (value) => setCompressFormat(value),
             quality: compressQuality,
-            onQualityChange: value => setCompressQuality(value),
+            onQualityChange: (value) => setCompressQuality(value),
           })}
           {RotatePanel({
             enabled: enableRotate,
             onToggle: setEnableRotate,
             mode: rotateMode,
-            onModeChange: value => setRotateMode(value),
+            onModeChange: (value) => setRotateMode(value),
             angle: rotateAngle,
-            onAngleChange: value => setRotateAngle(clampFixedAngle(value)),
+            onAngleChange: (value) => setRotateAngle(clampFixedAngle(value)),
             minAngle: rotateMinAngle,
-            onMinAngleChange: value => setRotateMinAngle(clampRandomAngle(value)),
+            onMinAngleChange: (value) => setRotateMinAngle(clampRandomAngle(value)),
             maxAngle: rotateMaxAngle,
-            onMaxAngleChange: value => setRotateMaxAngle(clampRandomAngle(value)),
+            onMaxAngleChange: (value) => setRotateMaxAngle(clampRandomAngle(value)),
             autoCrop: rotateAutoCrop,
             onAutoCropChange: setRotateAutoCrop,
           })}

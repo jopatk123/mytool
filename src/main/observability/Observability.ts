@@ -62,7 +62,7 @@ class ObservabilityStore {
 
     void this.appendToFile(JSON.stringify({ type: 'error', error: stored }) + '\n');
 
-    this.alertListeners.forEach(listener => {
+    this.alertListeners.forEach((listener) => {
       try {
         listener(stored);
       } catch (listenerError) {

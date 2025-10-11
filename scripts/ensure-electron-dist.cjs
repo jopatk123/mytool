@@ -13,12 +13,12 @@ const requiredOutputs = [
   path.join(distRoot, 'src', 'main', 'preload.js'),
   path.join(distRoot, 'src', 'shared', 'constants.js'),
   path.join(distRoot, 'src', 'shared', 'errors.js'),
-  path.join(distRoot, 'src', 'shared', 'types.js')
+  path.join(distRoot, 'src', 'shared', 'types.js'),
 ];
 
 const trackedSources = [
   path.join(projectRoot, 'src', 'main'),
-  path.join(projectRoot, 'src', 'shared')
+  path.join(projectRoot, 'src', 'shared'),
 ];
 
 const banner = (msg) => {
@@ -32,11 +32,7 @@ const ensureDistPackage = () => {
 
   banner('Missing dist-electron/package.json — recreating with CommonJS type');
   fs.mkdirSync(distRoot, { recursive: true });
-  fs.writeFileSync(
-    distPkgPath,
-    JSON.stringify({ type: 'commonjs' }, null, 2) + '\n',
-    'utf8'
-  );
+  fs.writeFileSync(distPkgPath, JSON.stringify({ type: 'commonjs' }, null, 2) + '\n', 'utf8');
 };
 
 const newestMtime = (entries) => {
@@ -95,7 +91,9 @@ const runTscBuild = (forceEmit) => {
   const tscBin = path.join(projectRoot, 'node_modules', '.bin', binName);
 
   if (!fs.existsSync(tscBin)) {
-    console.error('[ensure-electron-dist] Cannot find local TypeScript binary. Did you run npm install?');
+    console.error(
+      '[ensure-electron-dist] Cannot find local TypeScript binary. Did you run npm install?',
+    );
     process.exitCode = 1;
     return false;
   }
@@ -104,7 +102,7 @@ const runTscBuild = (forceEmit) => {
 
   const result = spawnSync(tscBin, args, {
     cwd: projectRoot,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
 
   if (result.error) {
@@ -124,32 +122,32 @@ const runTscBuild = (forceEmit) => {
 
 const bundlePreload = (isDev) => {
   banner('Bundling preload script with esbuild');
-  
+
   const nodeBin = process.platform === 'win32' ? 'node.exe' : 'node';
   const bundleScript = path.join(__dirname, 'bundle-preload.cjs');
-  
+
   const args = [bundleScript];
   if (isDev) {
     args.push('--dev');
   }
-  
+
   const result = spawnSync(nodeBin, args, {
     cwd: projectRoot,
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
-  
+
   if (result.error) {
     console.error('[ensure-electron-dist] Failed to bundle preload script:', result.error);
     process.exitCode = result.status ?? 1;
     return false;
   }
-  
+
   if (result.status !== 0) {
     console.error(`[ensure-electron-dist] Preload bundler exited with code ${result.status}`);
     process.exitCode = result.status;
     return false;
   }
-  
+
   return true;
 };
 
@@ -160,8 +158,10 @@ const verifyOutputs = () => {
     return true;
   }
 
-  console.error('[ensure-electron-dist] Electron build artifacts are still missing:',
-    missing.map((file) => path.relative(projectRoot, file)));
+  console.error(
+    '[ensure-electron-dist] Electron build artifacts are still missing:',
+    missing.map((file) => path.relative(projectRoot, file)),
+  );
   process.exitCode = 1;
   return false;
 };

@@ -82,7 +82,9 @@ describe('createMainWindow preload resolution', () => {
       logger: createLogger(),
     } as unknown as Parameters<typeof createMainWindow>[0];
 
-    const window = createMainWindow(options) as unknown as { options: { webPreferences: { preload: string } } };
+    const window = createMainWindow(options) as unknown as {
+      options: { webPreferences: { preload: string } };
+    };
 
     expect(existsSyncMock).toHaveBeenCalledTimes(1);
     const [checkedPath] = existsSyncMock.mock.calls[0];
@@ -99,9 +101,11 @@ describe('createMainWindow preload resolution', () => {
       logger: createLogger(),
     } as unknown as Parameters<typeof createMainWindow>[0];
 
-    const window = createMainWindow(options) as unknown as { options: { webPreferences: { preload: string } } };
+    const window = createMainWindow(options) as unknown as {
+      options: { webPreferences: { preload: string } };
+    };
 
-  const moduleDir = path.resolve(TEST_DIR, '../../main/bootstrap');
+    const moduleDir = path.resolve(TEST_DIR, '../../main/bootstrap');
     const expectedFallback = path.join(moduleDir, 'preload.js');
 
     expect(window.options.webPreferences.preload).toBe(expectedFallback);

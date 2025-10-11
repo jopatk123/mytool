@@ -67,12 +67,18 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <Text>我们已经记录了这个错误，请稍后重试。</Text>
           </Paragraph>
           {this.state.errorMessage && (
-            <Paragraph type="secondary" ellipsis={{ rows: 3, expandable: true, symbol: '展开详情' }}>
+            <Paragraph
+              type="secondary"
+              ellipsis={{ rows: 3, expandable: true, symbol: '展开详情' }}
+            >
               {this.state.errorMessage}
             </Paragraph>
           )}
           {this.state.errorStack && (
-            <Paragraph type="secondary" ellipsis={{ rows: 2, expandable: true, symbol: '展开堆栈' }}>
+            <Paragraph
+              type="secondary"
+              ellipsis={{ rows: 2, expandable: true, symbol: '展开堆栈' }}
+            >
               <Text code>{this.state.errorStack}</Text>
             </Paragraph>
           )}

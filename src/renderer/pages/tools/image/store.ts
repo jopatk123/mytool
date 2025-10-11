@@ -59,7 +59,7 @@ export const useImageToolStore = create<ImageToolState>()((set, get) => ({
       scanId,
       assets,
       directory,
-      selectedAssetIds: assets.map(asset => asset.id),
+      selectedAssetIds: assets.map((asset) => asset.id),
       status: assets.length > 0 ? 'ready' : 'idle',
     });
   },
@@ -79,14 +79,14 @@ export const useImageToolStore = create<ImageToolState>()((set, get) => ({
   toggleAsset(assetId) {
     const { selectedAssetIds } = get();
     if (selectedAssetIds.includes(assetId)) {
-      set({ selectedAssetIds: selectedAssetIds.filter(id => id !== assetId) });
+      set({ selectedAssetIds: selectedAssetIds.filter((id) => id !== assetId) });
     } else {
       set({ selectedAssetIds: uniqueIds([...selectedAssetIds, assetId]) });
     }
   },
   selectAll() {
     const { assets } = get();
-    set({ selectedAssetIds: assets.map(asset => asset.id) });
+    set({ selectedAssetIds: assets.map((asset) => asset.id) });
   },
   clearSelection() {
     set({ selectedAssetIds: [] });
@@ -98,7 +98,7 @@ export const useImageToolStore = create<ImageToolState>()((set, get) => ({
     set({ jobId, status: jobId ? 'running' : get().status });
   },
   updateFromEvent(event) {
-    set(state => {
+    set((state) => {
       if (event.type === 'start') {
         return {
           ...state,

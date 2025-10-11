@@ -56,11 +56,14 @@ export const setupErrorHandling = (deps: ErrorHandlingDependencies): FatalErrorC
       if (reason instanceof Error) {
         notifyFatalError('应用程序发生未处理的 Promise 拒绝', reason);
       } else {
-        observability.recordError({
-          type: 'unhandledrejection',
-          message: String(reason),
-          details: toSafeJson(reason),
-        }, 'main');
+        observability.recordError(
+          {
+            type: 'unhandledrejection',
+            message: String(reason),
+            details: toSafeJson(reason),
+          },
+          'main',
+        );
       }
     });
   };

@@ -20,11 +20,12 @@ function Layout() {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-  const shortName = appInfo.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(part => part[0]?.toUpperCase())
-    .join('') || appInfo.name.slice(0, 2);
+  const shortName =
+    appInfo.name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || appInfo.name.slice(0, 2);
 
   const menuItems = [
     {

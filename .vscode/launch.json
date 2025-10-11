@@ -13,10 +13,7 @@
       "args": ["."],
       "outputCapture": "std",
       "sourceMaps": true,
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/**",
-        "!**/node_modules/**"
-      ],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
       "preLaunchTask": "npm: build:electron"
     },
     {

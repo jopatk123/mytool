@@ -21,7 +21,7 @@ export function HashPanel({ enabled, onToggle, algorithm, onAlgorithmChange }: H
           <Text>哈希算法：</Text>
           <Select
             value={algorithm}
-            onChange={value => onAlgorithmChange(value as HashRenameOperation['algorithm'])}
+            onChange={(value) => onAlgorithmChange(value as HashRenameOperation['algorithm'])}
             options={[
               { label: 'SHA-256', value: 'sha256' },
               { label: 'SHA-1', value: 'sha1' },

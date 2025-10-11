@@ -12,7 +12,7 @@ describe('electron API wrapper', () => {
   });
 
   it('delegates calls to the underlying preload implementation', async () => {
-  const mock = getMock() as ElectronAPI & { version: string };
+    const mock = getMock() as ElectronAPI & { version: string };
     const payload = { type: 'error', message: 'oops' };
 
     await electronAPI.getToolList();
@@ -28,12 +28,18 @@ describe('electron API wrapper', () => {
     await electronAPI.importCSV('/tmp/in.csv');
     await electronAPI.renameFiles([]);
     await electronAPI.deleteFiles([]);
-  unsubscribe();
+    unsubscribe();
     electronAPI.windowMinimize();
     electronAPI.windowMaximize();
     electronAPI.windowClose();
     electronAPI.reportError(payload);
-    electronAPI.reportLog({ timestamp: Date.now(), level: 'info', prefix: 'test', message: 'delegation', args: [] });
+    electronAPI.reportLog({
+      timestamp: Date.now(),
+      level: 'info',
+      prefix: 'test',
+      message: 'delegation',
+      args: [],
+    });
     await electronAPI.getObservabilitySnapshot();
 
     expect(mock.getToolList).toHaveBeenCalledTimes(1);
@@ -58,7 +64,7 @@ describe('electron API wrapper', () => {
   });
 
   it('warns on version mismatch', () => {
-  const mock = getMock() as ElectronAPI & { version: string };
+    const mock = getMock() as ElectronAPI & { version: string };
     const originalVersion = mock.version;
     mock.version = '9.9.9';
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});

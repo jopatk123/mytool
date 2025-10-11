@@ -21,8 +21,8 @@ describe('ImageTool page', () => {
       render(
         <ElectronAPIProvider value={mockApi}>
           <ImageTool />
-        </ElectronAPIProvider>
-      )
+        </ElectronAPIProvider>,
+      ),
     ).not.toThrow();
 
     await waitFor(() => {

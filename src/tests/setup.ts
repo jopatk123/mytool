@@ -15,7 +15,7 @@ Object.assign(globalThis, { expect });
 // Mock window.matchMedia for Ant Design components
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -39,7 +39,13 @@ const electronAPIMock: ElectronAPI = {
   executeTool: vi.fn(async () => ({ success: true })),
   selectFile: vi.fn(async () => null),
   saveFile: vi.fn(async () => null),
-  scanImages: vi.fn(async () => ({ scanId: 'test', directory: '/', assets: [], scannedFiles: 0, totalFiles: 0 })),
+  scanImages: vi.fn(async () => ({
+    scanId: 'test',
+    directory: '/',
+    assets: [],
+    scannedFiles: 0,
+    totalFiles: 0,
+  })),
   startImageJob: vi.fn(async () => ({ jobId: 'job-1' })),
   cancelImageJob: vi.fn(async () => undefined),
   onImageJobEvent: vi.fn(() => unsubscribeMock),

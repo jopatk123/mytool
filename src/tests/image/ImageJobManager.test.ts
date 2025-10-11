@@ -17,11 +17,11 @@ describe('ImageJobManager', () => {
   });
 
   it('processes resize, compress and hash rename operations', async () => {
-  const manager = new ImageJobManager();
-  const events: ImageJobEvent[] = [];
+    const manager = new ImageJobManager();
+    const events: ImageJobEvent[] = [];
     let resolveSummary: ((summary: ImageJobSummary) => void) | null = null;
 
-    const summaryPromise = new Promise<ImageJobSummary>(resolve => {
+    const summaryPromise = new Promise<ImageJobSummary>((resolve) => {
       resolveSummary = resolve;
     });
 
@@ -37,7 +37,7 @@ describe('ImageJobManager', () => {
 
     const request: ImageJobRequest = {
       scanId: 'test-scan',
-      assetIds: workspace.assets.map(asset => asset.id),
+      assetIds: workspace.assets.map((asset) => asset.id),
       operations: [
         { type: 'resize', width: 64, height: 64, fit: 'inside' },
         { type: 'compress', quality: 70, targetFormat: 'jpeg' },
@@ -53,7 +53,9 @@ describe('ImageJobManager', () => {
 
     const summary = await Promise.race([
       summaryPromise,
-      new Promise<ImageJobSummary>((_, reject) => setTimeout(() => reject(new Error('job timeout')), 10_000)),
+      new Promise<ImageJobSummary>((_, reject) =>
+        setTimeout(() => reject(new Error('job timeout')), 10_000),
+      ),
     ]);
 
     expect(summary).toBeDefined();
@@ -61,13 +63,16 @@ describe('ImageJobManager', () => {
     expect(summary.completed).toBe(workspace.assets.length);
     expect(summary.failed).toBe(0);
     expect(summary.results.length).toBe(workspace.assets.length);
-    expect(events.some(event => event.type === 'start')).toBe(true);
+    expect(events.some((event) => event.type === 'start')).toBe(true);
 
     for (const result of summary.results) {
-      const original = workspace.assets.find(asset => asset.id === result.assetId);
+      const original = workspace.assets.find((asset) => asset.id === result.assetId);
       expect(original).toBeDefined();
       expect(result.outputPath).toBe(original?.filePath);
-      const exists = await fs.access(result.outputPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(result.outputPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(true);
       expect(result.hash).toBeDefined();
     }

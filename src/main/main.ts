@@ -23,11 +23,11 @@ const { notifyFatalError, setupProcessErrorHandling } = setupErrorHandling({
 
 setupProcessErrorHandling();
 
-addLogListener(entry => {
+addLogListener((entry) => {
   observability.recordLog(entry, 'main');
 });
 
-observability.addAlertListener(entry => {
+observability.addAlertListener((entry) => {
   logger.warn('Observability alert triggered', entry);
 });
 
@@ -91,7 +91,7 @@ void app
       }
     });
   })
-  .catch(error => {
+  .catch((error) => {
     logger.error('Failed during app readiness sequence', error);
     notifyFatalError('应用启动失败', error);
     app.quit();

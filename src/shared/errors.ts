@@ -85,7 +85,7 @@ export const isAppError = (value: unknown): value is AppError => value instanceo
 
 export const createAppError = (
   error: unknown,
-  fallback: { code?: AppErrorCode | string; message?: string } = {}
+  fallback: { code?: AppErrorCode | string; message?: string } = {},
 ): AppError => {
   if (isAppError(error)) {
     return error;
@@ -99,13 +99,9 @@ export const createAppError = (
     });
   }
 
-  return new AppError(
-    fallback.code ?? AppErrorCode.UNKNOWN,
-    fallback.message ?? String(error),
-    {
-      details: error,
-    }
-  );
+  return new AppError(fallback.code ?? AppErrorCode.UNKNOWN, fallback.message ?? String(error), {
+    details: error,
+  });
 };
 
 export interface IPCSuccessResponse<T> {
@@ -151,7 +147,10 @@ const sanitizeDetails = (details: unknown): unknown => {
   return details;
 };
 
-export const toIPCErrorResponse = (error: unknown, fallback?: { code?: string; message?: string }): IPCErrorResponse => {
+export const toIPCErrorResponse = (
+  error: unknown,
+  fallback?: { code?: string; message?: string },
+): IPCErrorResponse => {
   const appError = createAppError(error, fallback);
   const serialized = appError.toJSON();
 
@@ -182,7 +181,10 @@ type ReportableErrorPayload = {
   details?: unknown;
 } & { timestamp: number; environment?: 'main' | 'renderer' };
 
-export const toReportableError = (error: unknown, overrides: Partial<ReportableErrorPayload> = {}): ReportableErrorPayload => {
+export const toReportableError = (
+  error: unknown,
+  overrides: Partial<ReportableErrorPayload> = {},
+): ReportableErrorPayload => {
   const appError = createAppError(error);
   const { message, stack } = appError;
 

@@ -45,14 +45,17 @@ export const createIpcRegistrar = (deps: IpcRegistrarDependencies): IpcRegistrar
           error,
         });
 
-        observability.recordError({
-          type: `ipc:${channel}`,
-          message: `IPC handler failed for ${channel}`,
-          details: {
-            args: toSafeJson(args),
-            error: toSafeJson(error),
+        observability.recordError(
+          {
+            type: `ipc:${channel}`,
+            message: `IPC handler failed for ${channel}`,
+            details: {
+              args: toSafeJson(args),
+              error: toSafeJson(error),
+            },
           },
-        }, 'main');
+          'main',
+        );
 
         return toIPCErrorResponse(error, {
           code: AppErrorCode.IPC_INVOCATION_FAILED,

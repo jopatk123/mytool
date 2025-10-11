@@ -32,7 +32,8 @@ interface SharpOperationResult {
 }
 
 const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOperationResult> => {
-  const { asset, jobId, resizeOp, compressOp, cropOp, rotateOp, targetFormat, finalExtension } = config;
+  const { asset, jobId, resizeOp, compressOp, cropOp, rotateOp, targetFormat, finalExtension } =
+    config;
   const requiresSharp = Boolean(resizeOp || compressOp || cropOp || rotateOp);
 
   if (!requiresSharp) {
@@ -84,10 +85,10 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
         try {
           // 计算旋转后的内切矩形
           const cropRect = calculateRotatedInscribedRect(currentWidth, currentHeight, angle);
-          
+
           // 先旋转图片（画布会自动扩展）
           pipeline = pipeline.rotate(angle, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
-          
+
           // 然后裁剪到内切矩形
           if (cropRect.width > 0 && cropRect.height > 0) {
             pipeline = pipeline.extract({
@@ -104,7 +105,9 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
             currentHeight = null;
           }
         } catch (error) {
-          warnings.push(`自动裁剪旋转后的空白区域失败：${error instanceof Error ? error.message : String(error)}`);
+          warnings.push(
+            `自动裁剪旋转后的空白区域失败：${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       }
     } else {
@@ -251,7 +254,7 @@ const normalizeSharpFormat = (format: string): keyof sharp.FormatEnum | null => 
  * 计算旋转后的最大内切矩形
  * 当矩形图片旋转角度后，四角会出现空白区域（透明或黑边）
  * 此函数计算旋转后能容纳原图内容的最大矩形区域，避免空白边缘
- * 
+ *
  * @param originalWidth - 原始图片宽度
  * @param originalHeight - 原始图片高度
  * @param angleDegrees - 旋转角度（度）
@@ -266,10 +269,10 @@ const calculateRotatedInscribedRect = (
   let normalizedAngle = angleDegrees % 360;
   if (normalizedAngle > 180) normalizedAngle -= 360;
   if (normalizedAngle < -180) normalizedAngle += 360;
-  
+
   // 取绝对值，因为旋转是对称的
   const absAngle = Math.abs(normalizedAngle);
-  
+
   // 0度或180度不需要裁剪
   if (absAngle < 0.01 || Math.abs(absAngle - 180) < 0.01) {
     return {
@@ -279,35 +282,35 @@ const calculateRotatedInscribedRect = (
       height: originalHeight,
     };
   }
-  
+
   // 转换为弧度
   const angleRad = (absAngle * Math.PI) / 180;
   const cosAngle = Math.abs(Math.cos(angleRad));
   const sinAngle = Math.abs(Math.sin(angleRad));
-  
+
   // 旋转后的画布尺寸（Sharp 自动扩展）
   const rotatedWidth = originalWidth * cosAngle + originalHeight * sinAngle;
   const rotatedHeight = originalWidth * sinAngle + originalHeight * cosAngle;
-  
+
   // 计算最大内切矩形的尺寸
   // 使用公式：对于旋转角度 θ，最大内切矩形的尺寸为：
   // inscribedWidth = (w*cos(θ) - h*sin(θ)) / (cos²(θ) - sin²(θ))
   // inscribedHeight = (h*cos(θ) - w*sin(θ)) / (cos²(θ) - sin²(θ))
   // 但更简单的方法是使用比例缩放
-  
+
   let inscribedWidth: number;
   let inscribedHeight: number;
-  
+
   if (absAngle <= 90) {
     // 对于小于90度的旋转，使用标准公式
     const w = originalWidth;
     const h = originalHeight;
-    
+
     // 计算缩放因子，使内切矩形不包含空白区域
     const cos2 = cosAngle * cosAngle;
     const sin2 = sinAngle * sinAngle;
     const denominator = cos2 - sin2;
-    
+
     if (Math.abs(denominator) < 0.0001) {
       // 45度附近，使用特殊处理
       const scaleFactor = 1 / (cosAngle + sinAngle);
@@ -319,38 +322,38 @@ const calculateRotatedInscribedRect = (
       const hSin = h * sinAngle;
       const hCos = h * cosAngle;
       const wSin = w * sinAngle;
-      
-      inscribedWidth = (wCos * cosAngle + hSin * sinAngle) - (hSin * cosAngle + wSin * sinAngle);
-      inscribedHeight = (hCos * cosAngle + wSin * sinAngle) - (wSin * cosAngle + hSin * sinAngle);
-      
+
+      inscribedWidth = wCos * cosAngle + hSin * sinAngle - (hSin * cosAngle + wSin * sinAngle);
+      inscribedHeight = hCos * cosAngle + wSin * sinAngle - (wSin * cosAngle + hSin * sinAngle);
+
       // 确保结果为正数
       inscribedWidth = Math.abs(inscribedWidth);
       inscribedHeight = Math.abs(inscribedHeight);
     }
   } else {
     // 大于90度，使用补角计算
-    const complementAngle = (180 - absAngle) * Math.PI / 180;
+    const complementAngle = ((180 - absAngle) * Math.PI) / 180;
     const cosComp = Math.abs(Math.cos(complementAngle));
     const sinComp = Math.abs(Math.sin(complementAngle));
-    
+
     inscribedWidth = originalHeight * cosComp + originalWidth * sinComp;
     inscribedHeight = originalHeight * sinComp + originalWidth * cosComp;
     inscribedWidth = inscribedWidth / (cosComp + sinComp);
     inscribedHeight = inscribedHeight / (cosComp + sinComp);
   }
-  
+
   // 确保尺寸不超过旋转后的画布
   inscribedWidth = Math.min(inscribedWidth, rotatedWidth);
   inscribedHeight = Math.min(inscribedHeight, rotatedHeight);
-  
+
   // 确保尺寸至少为1像素
   inscribedWidth = Math.max(1, Math.floor(inscribedWidth));
   inscribedHeight = Math.max(1, Math.floor(inscribedHeight));
-  
+
   // 计算裁剪区域的左上角位置（居中裁剪）
   const left = Math.floor((rotatedWidth - inscribedWidth) / 2);
   const top = Math.floor((rotatedHeight - inscribedHeight) / 2);
-  
+
   return {
     left,
     top,
@@ -359,8 +362,4 @@ const calculateRotatedInscribedRect = (
   };
 };
 
-export {
-  clampQuality,
-  normalizeSharpFormat,
-  runSharpOperations,
-};
+export { clampQuality, normalizeSharpFormat, runSharpOperations };

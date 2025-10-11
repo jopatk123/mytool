@@ -37,13 +37,15 @@ const sanitizeExtensions = (extensions?: string[]): Set<string> => {
 
   return new Set(
     extensions
-      .map(ext => ext.trim().toLowerCase())
-      .map(ext => (ext.startsWith('.') ? ext : `.${ext}`))
+      .map((ext) => ext.trim().toLowerCase())
+      .map((ext) => (ext.startsWith('.') ? ext : `.${ext}`)),
   );
 };
 
 const buildAssetId = (filePath: string): string => {
-  return randomUUID({ disableEntropyCache: true }) + ':' + Buffer.from(filePath).toString('base64url');
+  return (
+    randomUUID({ disableEntropyCache: true }) + ':' + Buffer.from(filePath).toString('base64url')
+  );
 };
 
 export class DirectoryScanner {
@@ -92,7 +94,7 @@ export class DirectoryScanner {
         }
 
         const filePath = path.join(currentDir, entry.name);
-  let stat: Stats;
+        let stat: Stats;
         try {
           stat = await fs.stat(filePath);
         } catch (error) {

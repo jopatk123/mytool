@@ -5,10 +5,6 @@ import { createTempFilePath, ensureDirectory } from './fileUtils';
 
 const MIN_RANDOM_ANGLE = -10;
 const MAX_RANDOM_ANGLE = 10;
-const AUTO_CROP_ALPHA_THRESHOLD = 18;
-const AUTO_CROP_INTENSITY_THRESHOLD = 18;
-const AUTO_CROP_MIN_VISIBLE_RATIO = 0.003;
-const AUTO_CROP_MIN_VISIBLE_FALLBACK = 2;
 
 export type OperationType = ImageBatchOperation['type'];
 
@@ -56,7 +52,6 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
   const applied: OperationType[] = [];
   const warnings: string[] = [];
   let usedAngle: number | null = null;
-  let shouldRemoveAlpha = false;
 
   if (cropOp) {
     if (currentWidth === null || currentHeight === null) {
@@ -81,36 +76,36 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
     usedAngle = angle;
 
     if (rotateOp.autoCrop) {
-      shouldRemoveAlpha = true;
-      pipeline = pipeline.ensureAlpha();
-      pipeline = pipeline.rotate(angle, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
-
-      try {
-        // 使用克隆管线分析原始像素，确保将旋转后残留的透明/半透明边裁切干净。
-        const clone = pipeline.clone();
-        const { data, info } = await clone.raw().toBuffer({ resolveWithObject: true });
-        const bounds = calculateVisibleBounds(
-          data,
-          info.width,
-          info.height,
-          info.channels,
-          AUTO_CROP_ALPHA_THRESHOLD,
-          AUTO_CROP_INTENSITY_THRESHOLD,
-        );
-
-        if (bounds) {
-          if (bounds.width !== info.width || bounds.height !== info.height) {
-            pipeline = pipeline.extract(bounds);
+      // 使用数学方法计算旋转后的最大内切矩形，避免空白边缘
+      if (currentWidth === null || currentHeight === null) {
+        warnings.push('无法获取图片尺寸，已跳过自动裁剪');
+        pipeline = pipeline.rotate(angle);
+      } else {
+        try {
+          // 计算旋转后的内切矩形
+          const cropRect = calculateRotatedInscribedRect(currentWidth, currentHeight, angle);
+          
+          // 先旋转图片（画布会自动扩展）
+          pipeline = pipeline.rotate(angle, { background: { r: 0, g: 0, b: 0, alpha: 0 } });
+          
+          // 然后裁剪到内切矩形
+          if (cropRect.width > 0 && cropRect.height > 0) {
+            pipeline = pipeline.extract({
+              left: cropRect.left,
+              top: cropRect.top,
+              width: cropRect.width,
+              height: cropRect.height,
+            });
+            currentWidth = cropRect.width;
+            currentHeight = cropRect.height;
+          } else {
+            warnings.push('旋转角度过大，无法计算有效的裁剪区域');
+            currentWidth = null;
+            currentHeight = null;
           }
-
-          currentWidth = bounds.width;
-          currentHeight = bounds.height;
-        } else {
-          currentWidth = info.width ?? currentWidth;
-          currentHeight = info.height ?? currentHeight;
+        } catch (error) {
+          warnings.push(`自动裁剪旋转后的空白区域失败：${error instanceof Error ? error.message : String(error)}`);
         }
-      } catch (error) {
-        warnings.push(`自动裁剪旋转后的空白区域失败，已保留原始旋转结果：${error instanceof Error ? error.message : String(error)}`);
       }
     } else {
       pipeline = pipeline.rotate(angle);
@@ -151,10 +146,6 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
     }
 
     applied.push('compress');
-  }
-
-  if (shouldRemoveAlpha && !supportsAlpha(finalExtension)) {
-    pipeline = pipeline.removeAlpha();
   }
 
   const tempPath = createTempFilePath(jobId, compressOp ? targetFormat : finalExtension);
@@ -235,11 +226,6 @@ const normalizeAngleRange = (min: number, max: number): [number, number] => {
   return [boundedMin, boundedMax];
 };
 
-const supportsAlpha = (extension: string): boolean => {
-  const normalized = extension.startsWith('.') ? extension.slice(1).toLowerCase() : extension.toLowerCase();
-  return normalized === 'png' || normalized === 'webp';
-};
-
 const clampQuality = (value: number | undefined, fallback = 80): number => {
   if (typeof value !== 'number') return fallback;
   return clamp(Math.round(value), 1, 100);
@@ -261,113 +247,116 @@ const normalizeSharpFormat = (format: string): keyof sharp.FormatEnum | null => 
   return null;
 };
 
-const calculateVisibleBounds = (
-  data: Buffer,
-  width: number,
-  height: number,
-  channels: number,
-  alphaThreshold: number,
-  intensityThreshold: number,
-) => {
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return null;
+/**
+ * 计算旋转后的最大内切矩形
+ * 当矩形图片旋转角度后，四角会出现空白区域（透明或黑边）
+ * 此函数计算旋转后能容纳原图内容的最大矩形区域，避免空白边缘
+ * 
+ * @param originalWidth - 原始图片宽度
+ * @param originalHeight - 原始图片高度
+ * @param angleDegrees - 旋转角度（度）
+ * @returns 裁剪区域的坐标和尺寸
+ */
+const calculateRotatedInscribedRect = (
+  originalWidth: number,
+  originalHeight: number,
+  angleDegrees: number,
+): { left: number; top: number; width: number; height: number } => {
+  // 将角度转换为弧度，并标准化到 [-180, 180]
+  let normalizedAngle = angleDegrees % 360;
+  if (normalizedAngle > 180) normalizedAngle -= 360;
+  if (normalizedAngle < -180) normalizedAngle += 360;
+  
+  // 取绝对值，因为旋转是对称的
+  const absAngle = Math.abs(normalizedAngle);
+  
+  // 0度或180度不需要裁剪
+  if (absAngle < 0.01 || Math.abs(absAngle - 180) < 0.01) {
+    return {
+      left: 0,
+      top: 0,
+      width: originalWidth,
+      height: originalHeight,
+    };
   }
-
-  let minX = width;
-  let minY = height;
-  let maxX = -1;
-  let maxY = -1;
-  const alphaIndex = Math.max(0, channels - 1);
-  const rowCounts = new Uint32Array(height);
-  const columnCounts = new Uint32Array(width);
-
-  for (let y = 0; y < height; y += 1) {
-    const rowOffset = y * width * channels;
-    for (let x = 0; x < width; x += 1) {
-      const offset = rowOffset + x * channels;
-      const r = data[offset] ?? 0;
-      const g = data[offset + 1] ?? 0;
-      const b = data[offset + 2] ?? 0;
-      const alpha = channels > 3 ? data[offset + alphaIndex] ?? 255 : 255;
-
-  const visibleByAlpha = alpha >= alphaThreshold;
-  const maxChannel = Math.max(r, g, b);
-  const averageIntensity = (r + g + b) / 3;
-  const visibleByColor = maxChannel >= intensityThreshold || averageIntensity >= intensityThreshold;
-  const isVisible = visibleByAlpha && visibleByColor;
-
-      if (!isVisible) {
-        continue;
-      }
-
-      if (x < minX) minX = x;
-      if (x > maxX) maxX = x;
-      if (y < minY) minY = y;
-      if (y > maxY) maxY = y;
-
-      rowCounts[y] += 1;
-      columnCounts[x] += 1;
+  
+  // 转换为弧度
+  const angleRad = (absAngle * Math.PI) / 180;
+  const cosAngle = Math.abs(Math.cos(angleRad));
+  const sinAngle = Math.abs(Math.sin(angleRad));
+  
+  // 旋转后的画布尺寸（Sharp 自动扩展）
+  const rotatedWidth = originalWidth * cosAngle + originalHeight * sinAngle;
+  const rotatedHeight = originalWidth * sinAngle + originalHeight * cosAngle;
+  
+  // 计算最大内切矩形的尺寸
+  // 使用公式：对于旋转角度 θ，最大内切矩形的尺寸为：
+  // inscribedWidth = (w*cos(θ) - h*sin(θ)) / (cos²(θ) - sin²(θ))
+  // inscribedHeight = (h*cos(θ) - w*sin(θ)) / (cos²(θ) - sin²(θ))
+  // 但更简单的方法是使用比例缩放
+  
+  let inscribedWidth: number;
+  let inscribedHeight: number;
+  
+  if (absAngle <= 90) {
+    // 对于小于90度的旋转，使用标准公式
+    const w = originalWidth;
+    const h = originalHeight;
+    
+    // 计算缩放因子，使内切矩形不包含空白区域
+    const cos2 = cosAngle * cosAngle;
+    const sin2 = sinAngle * sinAngle;
+    const denominator = cos2 - sin2;
+    
+    if (Math.abs(denominator) < 0.0001) {
+      // 45度附近，使用特殊处理
+      const scaleFactor = 1 / (cosAngle + sinAngle);
+      inscribedWidth = w * scaleFactor;
+      inscribedHeight = h * scaleFactor;
+    } else {
+      // 使用精确公式计算内切矩形
+      const wCos = w * cosAngle;
+      const hSin = h * sinAngle;
+      const hCos = h * cosAngle;
+      const wSin = w * sinAngle;
+      
+      inscribedWidth = (wCos * cosAngle + hSin * sinAngle) - (hSin * cosAngle + wSin * sinAngle);
+      inscribedHeight = (hCos * cosAngle + wSin * sinAngle) - (wSin * cosAngle + hSin * sinAngle);
+      
+      // 确保结果为正数
+      inscribedWidth = Math.abs(inscribedWidth);
+      inscribedHeight = Math.abs(inscribedHeight);
     }
+  } else {
+    // 大于90度，使用补角计算
+    const complementAngle = (180 - absAngle) * Math.PI / 180;
+    const cosComp = Math.abs(Math.cos(complementAngle));
+    const sinComp = Math.abs(Math.sin(complementAngle));
+    
+    inscribedWidth = originalHeight * cosComp + originalWidth * sinComp;
+    inscribedHeight = originalHeight * sinComp + originalWidth * cosComp;
+    inscribedWidth = inscribedWidth / (cosComp + sinComp);
+    inscribedHeight = inscribedHeight / (cosComp + sinComp);
   }
-
-  if (maxX < minX || maxY < minY) {
-    return null;
-  }
-
-  const fallbackBounds = {
-    left: minX,
-    top: minY,
-    width: maxX - minX + 1,
-    height: maxY - minY + 1,
-  } as const;
-
-  const minVisiblePerRow = Math.max(
-    AUTO_CROP_MIN_VISIBLE_FALLBACK,
-    Math.floor(width * AUTO_CROP_MIN_VISIBLE_RATIO),
-  );
-  const minVisiblePerColumn = Math.max(
-    AUTO_CROP_MIN_VISIBLE_FALLBACK,
-    Math.floor(height * AUTO_CROP_MIN_VISIBLE_RATIO),
-  );
-
-  let top = minY;
-  while (top <= maxY && rowCounts[top] < minVisiblePerRow) {
-    top += 1;
-  }
-
-  if (top > maxY) {
-    return fallbackBounds;
-  }
-
-  let bottom = maxY;
-  while (bottom >= top && rowCounts[bottom] < minVisiblePerRow) {
-    bottom -= 1;
-  }
-
-  let left = minX;
-  while (left <= maxX && columnCounts[left] < minVisiblePerColumn) {
-    left += 1;
-  }
-
-  if (left > maxX) {
-    return fallbackBounds;
-  }
-
-  let right = maxX;
-  while (right >= left && columnCounts[right] < minVisiblePerColumn) {
-    right -= 1;
-  }
-
-  if (right < left || bottom < top) {
-    return fallbackBounds;
-  }
-
+  
+  // 确保尺寸不超过旋转后的画布
+  inscribedWidth = Math.min(inscribedWidth, rotatedWidth);
+  inscribedHeight = Math.min(inscribedHeight, rotatedHeight);
+  
+  // 确保尺寸至少为1像素
+  inscribedWidth = Math.max(1, Math.floor(inscribedWidth));
+  inscribedHeight = Math.max(1, Math.floor(inscribedHeight));
+  
+  // 计算裁剪区域的左上角位置（居中裁剪）
+  const left = Math.floor((rotatedWidth - inscribedWidth) / 2);
+  const top = Math.floor((rotatedHeight - inscribedHeight) / 2);
+  
   return {
     left,
     top,
-    width: right - left + 1,
-    height: bottom - top + 1,
-  } as const;
+    width: inscribedWidth,
+    height: inscribedHeight,
+  };
 };
 
 export {

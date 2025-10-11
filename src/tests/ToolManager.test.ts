@@ -39,6 +39,16 @@ describe('ToolManager', () => {
     expect(fileTool?.enabled).toBe(true);
   });
 
+  it('should have audio tool', async () => {
+    await toolManager.initialize();
+    const tools = toolManager.getAllTools();
+
+    const audioTool = tools.find((t) => t.id === 'audio-tool');
+    expect(audioTool).toBeDefined();
+    expect(audioTool?.name).toBe('音频处理工具');
+    expect(audioTool?.category).toBe('audio');
+  });
+
   it('should cleanup without errors', async () => {
     await toolManager.initialize();
     expect(() => toolManager.cleanup()).not.toThrow();

@@ -7,6 +7,7 @@ import {
   SettingOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  CustomerServiceOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { appInfo } from '@renderer/env';
@@ -47,6 +48,11 @@ function Layout() {
           key: '/tools/file',
           icon: <FolderOutlined />,
           label: '文件工具',
+        },
+        {
+          key: '/tools/audio',
+          icon: <CustomerServiceOutlined />,
+          label: '音频工具',
         },
       ],
     },

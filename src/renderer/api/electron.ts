@@ -57,6 +57,15 @@ const electronAPI: ElectronAPI = Object.freeze({
   importCSV: (filePath: Parameters<ElectronAPI['importCSV']>[0]) => getRaw().importCSV(filePath),
   renameFiles: (tasks: Parameters<ElectronAPI['renameFiles']>[0]) => getRaw().renameFiles(tasks),
   deleteFiles: (paths: Parameters<ElectronAPI['deleteFiles']>[0]) => getRaw().deleteFiles(paths),
+  scanAudio: (request: Parameters<ElectronAPI['scanAudio']>[0]) => getRaw().scanAudio(request),
+  convertAudio: (request: Parameters<ElectronAPI['convertAudio']>[0]) =>
+    getRaw().convertAudio(request),
+  trimAudio: (request: Parameters<ElectronAPI['trimAudio']>[0]) => getRaw().trimAudio(request),
+  batchProcessAudio: (request: Parameters<ElectronAPI['batchProcessAudio']>[0]) =>
+    getRaw().batchProcessAudio(request),
+  mergeAudio: (request: Parameters<ElectronAPI['mergeAudio']>[0]) => getRaw().mergeAudio(request),
+  previewAudio: (request: Parameters<ElectronAPI['previewAudio']>[0]) =>
+    getRaw().previewAudio(request),
   reportError: (payload: Parameters<ElectronAPI['reportError']>[0]) =>
     getRaw().reportError(payload),
   reportLog: (entry: RendererLogPayload) => getRaw().reportLog(entry),

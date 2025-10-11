@@ -23,6 +23,17 @@ import {
   FileRenameResult,
   FileDeleteResult,
 } from '../shared/types';
+import type {
+  AudioScanRequest,
+  AudioScanResult,
+  AudioConvertRequest,
+  AudioTrimRequest,
+  AudioBatchRequest,
+  AudioBatchResult,
+  AudioMergeRequest,
+  AudioPreviewRequest,
+  AudioPreviewResult,
+} from '../shared/types/audio';
 
 const isIpcResponse = <T>(value: unknown): value is IPCResponse<T> =>
   typeof value === 'object' && value !== null && 'success' in value;
@@ -120,6 +131,26 @@ const electronAPI: ElectronAPI = Object.freeze({
     invoke<FileDeleteResult[]>(IPCChannel.TOOL_EXECUTE, 'file-tool', {
       action: 'deleteFiles',
       filePaths,
+    }),
+
+  // 音频工具
+  scanAudio: (request: AudioScanRequest) =>
+    invoke<AudioScanResult>(IPCChannel.TOOL_EXECUTE, 'audio-tool', { action: 'scan', ...request }),
+  convertAudio: (request: AudioConvertRequest) =>
+    invoke<string>(IPCChannel.TOOL_EXECUTE, 'audio-tool', { action: 'convert', ...request }),
+  trimAudio: (request: AudioTrimRequest) =>
+    invoke<string>(IPCChannel.TOOL_EXECUTE, 'audio-tool', { action: 'trim', ...request }),
+  batchProcessAudio: (request: AudioBatchRequest) =>
+    invoke<AudioBatchResult>(IPCChannel.TOOL_EXECUTE, 'audio-tool', {
+      action: 'batchProcess',
+      ...request,
+    }),
+  mergeAudio: (request: AudioMergeRequest) =>
+    invoke<string>(IPCChannel.TOOL_EXECUTE, 'audio-tool', { action: 'merge', ...request }),
+  previewAudio: (request: AudioPreviewRequest) =>
+    invoke<AudioPreviewResult>(IPCChannel.TOOL_EXECUTE, 'audio-tool', {
+      action: 'preview',
+      ...request,
     }),
 
   // 错误和日志

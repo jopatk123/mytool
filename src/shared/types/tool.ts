@@ -6,6 +6,7 @@ import type { IpcMainInvokeEvent, WebContents } from 'electron';
 export enum ToolCategory {
   IMAGE = 'image',
   FILE = 'file',
+  AUDIO = 'audio',
   TEXT = 'text',
   SYSTEM = 'system',
   OTHER = 'other',

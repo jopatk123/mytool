@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, Row, Col, Typography, Space } from 'antd';
-import { PictureOutlined, FolderOutlined, ToolOutlined } from '@ant-design/icons';
+import { PictureOutlined, FolderOutlined, ToolOutlined, CustomerServiceOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { ToolConfig } from '@shared/types';
 import { createLogger } from '@shared/utils/logger';
@@ -35,6 +35,8 @@ function Home() {
         return <PictureOutlined />;
       case 'file':
         return <FolderOutlined />;
+      case 'audio':
+        return <CustomerServiceOutlined />;
       default:
         return <ToolOutlined />;
     }
@@ -51,7 +53,7 @@ function Home() {
                 hoverable
                 style={{ height: '100%', cursor: 'pointer' }}
                 onClick={() => {
-                  // For image and file categories navigate to dedicated pages
+                  // For built-in tool categories navigate to dedicated pages
                   if (tool.category === 'image') {
                     navigate('/tools/image');
                     return;
@@ -59,6 +61,11 @@ function Home() {
 
                   if (tool.category === 'file') {
                     navigate('/tools/file');
+                    return;
+                  }
+
+                  if (tool.category === 'audio') {
+                    navigate('/tools/audio');
                     return;
                   }
 

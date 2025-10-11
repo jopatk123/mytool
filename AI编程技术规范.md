@@ -12,7 +12,7 @@
 | 代码质量   | ESLint + Prettier + Stylelint（可选）          | Biome、Rome                                 | 通过统一脚本执行 lint/format，确保输出一致。                                   |
 | 主进程框架 | Electron 28+ + electron-builder                | electron-forge、electron-packager           | 需支持自动更新、多平台打包与原生模块集成。                                     |
 | 数据访问   | SQLite3 + typeorm + electron-store（轻量数据） | Prisma、Knex、LevelDB                       | 本地数据库需考虑路径管理（用户数据目录）与迁移机制，敏感数据加密存储。         |
-| 文件与媒体 | fs-extra + Sharp + exifr + electron-dialog     | node-stream、ffmpeg-static                  | 统一文件操作权限处理，通过主进程调用系统对话框，避免渲染进程直接操作文件系统。 |
+| 文件与媒体 | fs-extra + Sharp + exifr + @ffmpeg-installer/ffmpeg + music-metadata + electron-dialog | node-stream、ffmpeg-static                  | 统一文件操作权限处理，通过主进程调用系统对话框，避免渲染进程直接操作文件系统；对 ESM 依赖（如 music-metadata）需采用动态导入以兼容 CommonJS 构建。 |
 | 系统集成   | electron-clipboard + electron-power-monitor    | node-ffi、robotjs                           | 系统级API需封装抽象层，处理不同平台差异（Windows/macOS/Linux）。               |
 | 后端能力   | 内置 Express 服务（可选）                      | Fastify、NestJS（嵌入式）                   | 仅在需要本地API服务时引入，优先使用进程内通信而非网络接口。                    |
 | 测试体系   | Jest（主进程） + Vitest（渲染进程） + spectron | Mocha、Playwright                           | 分别测试主进程、渲染进程及跨进程交互，覆盖自动更新等桌面特性。                 |

@@ -40,6 +40,12 @@ describe('Preload Script', () => {
       'reportError',
       'reportLog',
       'getObservabilitySnapshot',
+    'scanAudio',
+    'convertAudio',
+    'trimAudio',
+    'batchProcessAudio',
+    'mergeAudio',
+    'previewAudio',
     ];
 
     // 这是一个结构验证测试

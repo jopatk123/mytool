@@ -3,6 +3,33 @@ import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { ELECTRON_API_VERSION } from '@shared/constants';
 import type { ElectronAPI } from '@shared/types';
+import type { Metadata } from 'music-metadata';
+
+const defaultMetadata: Metadata = {
+  format: {
+    duration: 0,
+    bitrate: undefined,
+    sampleRate: undefined,
+    numberOfChannels: undefined,
+    codec: undefined,
+    container: undefined,
+  },
+  common: {},
+};
+
+const parseFileMock = vi.fn(async () => defaultMetadata);
+
+vi.mock('music-metadata', () => ({
+  parseFile: parseFileMock,
+}));
+
+const ffmpegModule = { path: '/usr/local/bin/ffmpeg', version: 'test' } as const;
+
+vi.mock('@ffmpeg-installer/ffmpeg', () => ({
+  default: ffmpegModule,
+  path: ffmpegModule.path,
+  version: ffmpegModule.version,
+}));
 
 // 自动清理
 afterEach(() => {
@@ -60,6 +87,18 @@ const electronAPIMock: ElectronAPI = {
   importCSV: vi.fn(async () => ({ tasks: [], invalidRows: 0 })),
   renameFiles: vi.fn(async () => []),
   deleteFiles: vi.fn(async () => []),
+  scanAudio: vi.fn(async () => ({
+    scanId: 'audio-1',
+    directory: '/audio',
+    files: [],
+    totalFiles: 0,
+    filteredFiles: 0,
+  })),
+  convertAudio: vi.fn(async () => '/tmp/out.wav'),
+  trimAudio: vi.fn(async () => '/tmp/out-trim.wav'),
+  batchProcessAudio: vi.fn(async () => ({ total: 0, succeeded: 0, failed: 0, items: [] })),
+  mergeAudio: vi.fn(async () => '/tmp/merged.wav'),
+  previewAudio: vi.fn(async () => ({ fileUrl: 'local-file:///tmp/out.mp3', mimeType: 'audio/mpeg', path: '/tmp/out.mp3' })),
   reportError: vi.fn(),
   reportLog: vi.fn(),
   getObservabilitySnapshot: vi.fn(async () => ({ logs: [], errors: [] })),

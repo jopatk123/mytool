@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import ImageTool from './pages/tools/ImageTool';
 import FileTool from './pages/tools/FileTool';
+import AudioTool from './pages/tools/AudioTool';
 import Settings from './pages/Settings';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           { index: true, element: <Home /> },
           { path: 'tools/image', element: <ImageTool /> },
           { path: 'tools/file', element: <FileTool /> },
+          { path: 'tools/audio', element: <AudioTool /> },
           { path: 'settings', element: <Settings /> },
           { path: '*', element: <Navigate to="/" replace /> },
         ],

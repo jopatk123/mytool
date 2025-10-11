@@ -3,6 +3,7 @@ import { ITool, ToolConfig, ToolExecuteContext } from '../../shared/types';
 import { createLogger } from '../../shared/utils/logger';
 import { ImageTool } from './ImageTool';
 import { FileTool } from './FileTool';
+import { AudioTool } from './AudioTool';
 
 const logger = createLogger('ToolManager');
 
@@ -21,10 +22,12 @@ export class ToolManager {
     try {
       // 注册工具
       const imageTool = new ImageTool();
-      const fileTool = new FileTool();
+  const fileTool = new FileTool();
+  const audioTool = new AudioTool();
 
       await this.registerTool(imageTool);
       await this.registerTool(fileTool);
+  await this.registerTool(audioTool);
 
       logger.success(`Initialized ${this.tools.size} tools`);
     } catch (error) {

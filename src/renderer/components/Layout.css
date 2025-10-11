@@ -23,16 +23,4 @@
   align-items: center;
 }
 
-.window-controls {
-  display: flex;
-  gap: 8px;
-  margin-right: 16px;
-  -webkit-app-region: no-drag;
-}
-
-.window-controls button {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  font-weight: bold;
-}
+/* Window controls removed from the renderer UI */

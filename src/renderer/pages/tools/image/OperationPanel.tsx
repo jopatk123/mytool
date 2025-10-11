@@ -258,7 +258,7 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
       }
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-  <Collapse bordered={false} defaultActiveKey={[]}>
+      <Collapse bordered={false} defaultActiveKey={["hash", "compress", "rotate"]}>
           {HashPanel({
             enabled: enableHashRename,
             onToggle: setEnableHashRename,

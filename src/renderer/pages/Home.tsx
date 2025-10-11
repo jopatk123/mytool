@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Typography, Space, Divider } from 'antd';
+import { Card, Row, Col, Typography, Space } from 'antd';
 import { PictureOutlined, FolderOutlined, ToolOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { ToolConfig } from '@shared/types';
 import { createLogger } from '@shared/utils/logger';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
@@ -12,6 +13,7 @@ const { Title, Paragraph } = Typography;
 function Home() {
   const [tools, setTools] = useState<ToolConfig[]>([]);
   const electronAPI = useElectronAPI();
+  const navigate = useNavigate();
 
   const loadTools = useCallback(async () => {
     try {
@@ -40,75 +42,51 @@ function Home() {
 
   return (
     <div>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div>
-          <Title level={2}>欢迎使用 Desktop Toolkit</Title>
-          <Paragraph type="secondary">
-            一个功能强大的本地桌面工具集，帮助您提高工作效率
-          </Paragraph>
-        </div>
+      <div>
+        <Title level={3}>工具列表</Title>
+        <Row gutter={[16, 16]}>
+          {tools.map(tool => (
+            <Col key={tool.id} span={8}>
+              <Card
+                hoverable
+                style={{ height: '100%', cursor: 'pointer' }}
+                onClick={() => {
+                  // For image and file categories navigate to dedicated pages
+                  if (tool.category === 'image') {
+                    navigate('/tools/image');
+                    return;
+                  }
 
-        <Row gutter={16}>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="可用工具"
-                value={tools.length}
-                prefix={<ToolOutlined />}
-                valueStyle={{ color: '#3f8600' }}
-              />
-            </Card>
-          </Col>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="图片工具"
-                value={tools.filter(t => t.category === 'image').length}
-                prefix={<PictureOutlined />}
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-          <Col span={8}>
-            <Card>
-              <Statistic
-                title="文件工具"
-                value={tools.filter(t => t.category === 'file').length}
-                prefix={<FolderOutlined />}
-                valueStyle={{ color: '#faad14' }}
-              />
-            </Card>
-          </Col>
+                  if (tool.category === 'file') {
+                    navigate('/tools/file');
+                    return;
+                  }
+
+                  // Fallback: call executeTool if other types are provided by main
+                  try {
+                    void electronAPI.executeTool(tool.id, {});
+                  } catch (err) {
+                    // ignore — executeTool may not be available in non-Electron env
+                    logger.warn('executeTool not available or failed', err);
+                  }
+                }}
+              >
+                <Space direction="vertical" size="small">
+                  <div style={{ fontSize: '32px' }}>
+                    {tool.icon || getIcon(tool.category)}
+                  </div>
+                  <Title level={4} style={{ margin: 0 }}>
+                    {tool.name}
+                  </Title>
+                  <Paragraph type="secondary" style={{ margin: 0 }}>
+                    {tool.description}
+                  </Paragraph>
+                </Space>
+              </Card>
+            </Col>
+          ))}
         </Row>
-
-        <Divider />
-
-        <div>
-          <Title level={3}>工具列表</Title>
-          <Row gutter={[16, 16]}>
-            {tools.map(tool => (
-              <Col key={tool.id} span={8}>
-                <Card
-                  hoverable
-                  style={{ height: '100%' }}
-                >
-                  <Space direction="vertical" size="small">
-                    <div style={{ fontSize: '32px' }}>
-                      {tool.icon || getIcon(tool.category)}
-                    </div>
-                    <Title level={4} style={{ margin: 0 }}>
-                      {tool.name}
-                    </Title>
-                    <Paragraph type="secondary" style={{ margin: 0 }}>
-                      {tool.description}
-                    </Paragraph>
-                  </Space>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
-      </Space>
+      </div>
     </div>
   );
 }

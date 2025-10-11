@@ -9,7 +9,6 @@ import {
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 import { appInfo } from '@renderer/env';
 import './Layout.css';
 
@@ -18,7 +17,6 @@ function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const electronAPI = useElectronAPI();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -91,17 +89,7 @@ function Layout() {
                 height: 64,
               }}
             />
-            <div className="window-controls">
-              <Button type="text" onClick={() => electronAPI.windowMinimize()}>
-                −
-              </Button>
-              <Button type="text" onClick={() => electronAPI.windowMaximize()}>
-                □
-              </Button>
-              <Button type="text" danger onClick={() => electronAPI.windowClose()}>
-                ×
-              </Button>
-            </div>
+            {/* Window controls are not needed in the desktop application's renderer UI. Removed. */}
           </div>
         </Header>
         <Content

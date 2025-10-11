@@ -21,6 +21,9 @@ export const FolderSelector: React.FC = () => {
     setScanResult,
   } = useFileToolStore();
 
+  // 使用 message.useMessage 避免 antd 关于静态 message 的警告
+  const [messageApi, contextHolder] = message.useMessage();
+
   const handleSelectFolder = async () => {
     try {
       const result = await electronAPI.selectFile({
@@ -29,32 +32,37 @@ export const FolderSelector: React.FC = () => {
 
       if (result && result.length > 0) {
         setSelectedDirectory(result[0]);
-        message.success('已选择文件夹');
+        messageApi.success('已选择文件夹');
+        // 自动触发扫描，直接传入目录以避免依赖异步状态更新
+        setTimeout(() => {
+          void handleScan(result[0]);
+        }, 0);
       }
     } catch (error) {
       console.error('Failed to select folder:', error);
-      message.error('选择文件夹失败');
+      messageApi.error('选择文件夹失败');
     }
   };
 
-  const handleScan = async () => {
-    if (!selectedDirectory) {
-      message.warning('请先选择文件夹');
+  const handleScan = async (directory?: string) => {
+    const dir = directory || selectedDirectory;
+    if (!dir) {
+      messageApi.warning('请先选择文件夹');
       return;
     }
 
     setIsScanning(true);
     try {
       const result = await electronAPI.scanFiles({
-        directory: selectedDirectory,
+        directory: dir,
         options: scanOptions,
       });
 
       setScanResult(result);
-      message.success(`扫描完成，找到 ${result.filteredFiles} 个文件`);
+      messageApi.success(`扫描完成，找到 ${result.filteredFiles} 个文件`);
     } catch (error) {
       console.error('Failed to scan directory:', error);
-      message.error('扫描失败');
+      messageApi.error('扫描失败');
       setScanResult(null);
     } finally {
       setIsScanning(false);
@@ -95,10 +103,11 @@ export const FolderSelector: React.FC = () => {
           </div>
         )}
 
+        {contextHolder}
         <Button
           type="primary"
           icon={<ScanOutlined />}
-          onClick={handleScan}
+          onClick={() => void handleScan()}
           loading={isScanning}
           disabled={!selectedDirectory}
         >

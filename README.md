@@ -1,32 +1,28 @@
 # Desktop Toolkit
 
-<div align="center">
-
 ![Desktop Toolkit](https://img.shields.io/badge/Desktop-Toolkit-blue)
 ![Version](https://img.shields.io/badge/version-1.0.0-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
 一个功能强大、可扩展的本地桌面工具集应用
 
-[功能特性](#功能特性) •
-[快速开始](#快速开始) •
-[项目结构](#项目结构) •
-[开发指南](#开发指南)
-
-</div>
+[功能特性](#features) •
+[快速开始](#quick-start) •
+[项目结构](#project-structure) •
+[开发指南](#development-guide)
 
 ## 📋 目录
 
-- [功能特性](#功能特性)
-- [技术栈](#技术栈)
-- [快速开始](#快速开始)
-- [项目结构](#项目结构)
-- [开发指南](#开发指南)
-- [构建打包](#构建打包)
-- [测试](#测试)
-- [扩展开发](#扩展开发)
+- [功能特性](#features)
+- [技术栈](#tech-stack)
+- [快速开始](#quick-start)
+- [项目结构](#project-structure)
+- [开发指南](#development-guide)
+- [构建打包](#build-and-package)
+- [测试](#testing)
+- [扩展开发](#extending)
 
-## ✨ 功能特性
+## ✨ 功能特性 {#features}
 
 - 🖼️ **图片批量处理工具**
   - 一键选择文件夹并自动扫描图片，默认支持递归子目录
@@ -51,7 +47,7 @@
   - 响应式布局
   - 深色/浅色主题
 
-## 🛠️ 技术栈
+## 🛠️ 技术栈 {#tech-stack}
 
 - **框架**: Electron 28
 - **UI**: React 18 + Ant Design 5
@@ -61,7 +57,7 @@
 - **状态管理**: Zustand
 - **路由**: React Router 6
 
-## 🚀 快速开始
+## 🚀 快速开始 {#quick-start}
 
 ### 环境要求
 
@@ -94,6 +90,27 @@ scripts\dev.bat
 
 > ℹ️ **开发时的完整性校验**：启动 Electron 进程前会自动运行 `scripts/ensure-electron-dist.cjs`，若发现 `dist-electron` 关键文件缺失或比源码旧，会重新编译主进程并修复 `dist-electron/package.json`。如遇本地构建异常，可手动执行 `npm run ensure:electron-dist` 进行自检与修复。
 
+### 关于 `ensure-electron-dist.cjs`（重要）
+
+项目顶层使用 ESM(`"type": "module"`)来构建 renderer，而 Electron 主进程通常以 CommonJS 输出。为了避免运行时因模块类型不匹配导致 Electron 启动失败，仓库中包含 `scripts/ensure-electron-dist.cjs`：
+
+- 若 `dist-electron/package.json` 不存在，脚本会写入 `{ "type": "commonjs" }` 以确保主进程以 CommonJS 方式加载，仅对 `dist-electron` 生效；如果该文件已存在，脚本不会覆盖现有内容（仅在缺失或需要重建时创建/修复）。
+- 脚本在进行 TypeScript 编译时会使用项目本地的 `tsc`（位于 `node_modules/.bin/tsc`），CI 或本地运行前请确保已安装依赖。
+- 在必要时会运行 `tsc -p tsconfig.electron.json` 来生成主进程构建产物，并打包 preload 脚本。
+
+为保证本地开发与 CI 的一致性，建议：
+
+- 在 CI 的构建步骤中，在启动 Electron 或运行集成测试前，执行：
+
+```bash
+# 强制生成 Electron dist（CI/打包 使用）
+node scripts/ensure-electron-dist.cjs --force
+```
+
+- 本地开发已在 `package.json` 的脚本中自动调用：`dev:electron`、`build:electron`、并新增 `prepare`/`postinstall` 来降低遗漏的风险。
+
+如果你在 CI 中遇到与主进程模块类型相关的错误，请先确认 CI 执行了上面的 `node scripts/ensure-electron-dist.cjs --force` 的命令。
+
 ### 构建
 
 ```bash
@@ -104,9 +121,9 @@ npm run build
 npm run package
 ```
 
-## 📁 项目结构
+## 📁 项目结构 {#project-structure}
 
-```
+```text
 mytool/
 ├── src/
 │   ├── main/                 # Electron 主进程
@@ -140,16 +157,16 @@ mytool/
 └── vitest.config.ts
 ```
 
-## 🔨 开发指南
+## 🔨 开发指南 {#development-guide}
 
 ### 图片批处理快速上手
 
 1. **进入工具页**：在主界面选择「图片批量处理」。
-2. **选择目录**：点击「选择图片文件夹」，默认勾选「包含子文件夹」。
-3. **浏览与筛选**：扫描完成后可在图片列表中查看缩略图，并通过全选/清除选择控制要处理的图片。
-4. **配置操作**：在「批量操作设置」中开启需要的操作（哈希重命名 / 尺寸调整 / 压缩），每项支持细粒度的参数配置。
-5. **开始任务**：点击「开始批量处理」，进度面板会实时展示执行状态、成功/失败数量以及详细错误报告。
-6. **取消任务**：处理中可随时点击「取消任务」中断剩余图片。
+1. **选择目录**：点击「选择图片文件夹」，默认勾选「包含子文件夹」。
+1. **浏览与筛选**：扫描完成后可在图片列表中查看缩略图，并通过全选/清除选择控制要处理的图片。
+1. **配置操作**：在「批量操作设置」中开启需要的操作（哈希重命名 / 尺寸调整 / 压缩），每项支持细粒度的参数配置。
+1. **开始任务**：点击「开始批量处理」，进度面板会实时展示执行状态、成功/失败数量以及详细错误报告。
+1. **取消任务**：处理中可随时点击「取消任务」中断剩余图片。
 
 > ⚠️ 默认情况下会在当前目录旁生成新的输出文件，若需覆盖原文件请显式勾选「允许覆盖原文件」。
 
@@ -182,7 +199,7 @@ export class MyTool implements ITool {
 }
 ```
 
-2. **注册工具**
+1. **注册工具**
 
 在 `src/main/tools/ToolManager.ts` 中注册：
 
@@ -196,17 +213,15 @@ async initialize(): Promise<void> {
 }
 ```
 
-3. **创建UI页面**
+1. **创建UI页面**
 
 在 `src/renderer/pages/tools/` 创建对应的页面组件。
 
-4. **添加路由**
+1. **添加路由**
 
 在 `src/renderer/App.tsx` 添加路由配置。
 
 ### IPC 通信
-
-主进程和渲染进程通过 IPC 通信：
 
 ```typescript
 // 渲染进程调用（推荐：通过 typed wrapper 或 Hook）
@@ -248,7 +263,7 @@ export const useAppStore = create<AppStore>((set) => ({
 }));
 ```
 
-## 📦 构建打包
+## 📦 构建打包 {#build-and-package}
 
 ### 开发构建
 
@@ -259,6 +274,7 @@ npm run build
 ### 生产打包
 
 ```bash
+#!/bin/bash
 # 打包当前平台
 npm run package
 
@@ -270,7 +286,7 @@ npm run package -- --mac
 
 打包后的文件在 `release/` 目录下。
 
-## 🧪 测试
+## 🧪 测试 {#testing}
 
 ```bash
 # 运行测试
@@ -291,13 +307,13 @@ npm test -- --coverage
 npm run lint
 ```
 
-## 🤝 贡献指南
+## 🤝 贡献指南 {#extending}
 
 1. Fork 本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+1. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+1. 推送到分支 (`git push origin feature/AmazingFeature`)
+1. 开启 Pull Request
 
 ## 📄 许可证
 
@@ -316,6 +332,4 @@ npm run lint
 
 ---
 
-<div align="center">
 Made with ❤️ by Desktop Toolkit Team
-</div>

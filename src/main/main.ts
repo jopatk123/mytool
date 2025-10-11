@@ -5,6 +5,7 @@ import { ToolManager } from './tools/ToolManager';
 import { toSafeJson } from './utils/toSafeJson';
 import { setupErrorHandling } from './bootstrap/errorHandling';
 import { createMainWindow } from './bootstrap/createMainWindow';
+import { setupAppMenu } from './bootstrap/appMenu';
 import { registerLocalFileProtocol } from './protocols/registerLocalFileProtocol';
 import { createIpcInitializer } from './ipc/initializeIpc';
 
@@ -72,6 +73,12 @@ void app
     registerLocalFileProtocol({ logger, protocol });
     await observability.initialize(app);
     await bootstrapApplication();
+    // 设置应用菜单（中文）
+    try {
+      setupAppMenu(getMainWindow());
+    } catch (err) {
+      logger.warn('Failed to setup application menu', err);
+    }
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {

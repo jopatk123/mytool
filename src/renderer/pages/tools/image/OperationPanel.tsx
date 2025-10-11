@@ -1,21 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Card,
-  Collapse,
-  Divider,
-  InputNumber,
-  Select,
-  Slider,
-  Space,
-  Switch,
-  Typography,
-  Radio,
-  message,
-} from 'antd';
-import { FolderOpenOutlined } from '@ant-design/icons';
+import { Card, Collapse, Divider, Space, Typography, message } from 'antd';
 import type { ImageBatchOperation, ImageJobRequest, ImageRotationMode } from '@shared/types';
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
+import { HashPanel } from './operationPanel/HashPanel';
+import { ResizePanel } from './operationPanel/ResizePanel';
+import { CropPanel } from './operationPanel/CropPanel';
+import { CompressPanel } from './operationPanel/CompressPanel';
+import { RotatePanel } from './operationPanel/RotatePanel';
+import { OutputControls } from './operationPanel/OutputControls';
 
 type HashRenameOperation = Extract<ImageBatchOperation, { type: 'hashRename' }>;
 
@@ -31,7 +23,7 @@ interface OperationPanelProps {
 
 export function OperationPanel({ disabled, running, assetCount, onRun, onCancel }: OperationPanelProps) {
   const electronAPI = useElectronAPI();
-  
+
   const [enableHashRename, setEnableHashRename] = useState(false);
   const [hashAlgorithm, setHashAlgorithm] = useState<HashRenameOperation['algorithm']>('sha256');
 
@@ -267,225 +259,76 @@ export function OperationPanel({ disabled, running, assetCount, onRun, onCancel 
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Collapse bordered={false} defaultActiveKey={['hash', 'compress', 'rotate']}>
-          <Collapse.Panel header="哈希刷新" key="hash">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Switch checked={enableHashRename} onChange={setEnableHashRename} />
-              <Space wrap>
-                <Text>哈希算法：</Text>
-                <Select
-                  value={hashAlgorithm}
-                  onChange={setHashAlgorithm}
-                  options={[
-                    { label: 'SHA-256', value: 'sha256' },
-                    { label: 'SHA-1', value: 'sha1' },
-                    { label: 'MD5', value: 'md5' },
-                  ]}
-                  style={{ width: 160 }}
-                  disabled={!enableHashRename}
-                />
-              </Space>
-              <Text type="secondary">此操作会直接覆盖原文件，仅刷新其哈希值。</Text>
-            </Space>
-          </Collapse.Panel>
-
-          <Collapse.Panel header="尺寸调整" key="resize">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Switch checked={enableResize} onChange={setEnableResize} />
-              <Space wrap>
-                <Text>宽度 (px)：</Text>
-                <InputNumber min={1} value={resizeWidth ?? undefined} onChange={value => setResizeWidth(value ?? null)} disabled={!enableResize} />
-                <Text>高度 (px)：</Text>
-                <InputNumber min={1} value={resizeHeight ?? undefined} onChange={value => setResizeHeight(value ?? null)} disabled={!enableResize} />
-              </Space>
-              <Space wrap>
-                <Text>缩放模式：</Text>
-                <Select
-                  value={resizeFit}
-                  onChange={value => setResizeFit(value)}
-                  disabled={!enableResize}
-                  style={{ width: 180 }}
-                  options={[
-                    { label: '等比裁剪 (cover)', value: 'cover' },
-                    { label: '保持完整 (contain)', value: 'contain' },
-                    { label: '不保持比例 (fill)', value: 'fill' },
-                    { label: '仅缩小 (inside)', value: 'inside' },
-                    { label: '放大到覆盖 (outside)', value: 'outside' },
-                  ]}
-                />
-              </Space>
-              <Space>
-                <Switch checked={preventEnlarge} onChange={setPreventEnlarge} disabled={!enableResize} />
-                <Text>避免放大原图</Text>
-              </Space>
-            </Space>
-          </Collapse.Panel>
-
-          <Collapse.Panel header="裁剪" key="crop">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Switch checked={enableCrop} onChange={setEnableCrop} />
-              <Text type="secondary">为需要裁剪的方向输入像素值（px），未填写或为 0 的方向将保持不变。</Text>
-              <Space wrap style={{ width: '100%' }}>
-                <Space>
-                  <Text>顶部：</Text>
-                  <InputNumber min={0} value={cropTop} onChange={value => setCropTop(clampCropInput(value))} disabled={!enableCrop} />
-                </Space>
-                <Space>
-                  <Text>底部：</Text>
-                  <InputNumber min={0} value={cropBottom} onChange={value => setCropBottom(clampCropInput(value))} disabled={!enableCrop} />
-                </Space>
-                <Space>
-                  <Text>左侧：</Text>
-                  <InputNumber min={0} value={cropLeft} onChange={value => setCropLeft(clampCropInput(value))} disabled={!enableCrop} />
-                </Space>
-                <Space>
-                  <Text>右侧：</Text>
-                  <InputNumber min={0} value={cropRight} onChange={value => setCropRight(clampCropInput(value))} disabled={!enableCrop} />
-                </Space>
-              </Space>
-            </Space>
-          </Collapse.Panel>
-
-          <Collapse.Panel header="压缩" key="compress">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Switch checked={enableCompress} onChange={setEnableCompress} />
-              <Space wrap>
-                <Text>输出格式：</Text>
-                <Select
-                  value={compressFormat}
-                  onChange={value => setCompressFormat(value)}
-                  disabled={!enableCompress}
-                  style={{ width: 160 }}
-                  options={[
-                    { label: 'JPEG', value: 'jpeg' },
-                    { label: 'PNG', value: 'png' },
-                    { label: 'WebP', value: 'webp' },
-                  ]}
-                />
-              </Space>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Text>压缩质量：{compressQuality}%</Text>
-                <Slider
-                  min={10}
-                  max={100}
-                  step={5}
-                  value={compressQuality}
-                  disabled={!enableCompress}
-                  onChange={value => setCompressQuality(value as number)}
-                />
-              </Space>
-            </Space>
-          </Collapse.Panel>
-
-          <Collapse.Panel header="旋转" key="rotate">
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Switch checked={enableRotate} onChange={setEnableRotate} />
-              <Space wrap align="center">
-                <Text>模式：</Text>
-                <Radio.Group
-                  value={rotateMode}
-                  onChange={event => setRotateMode(event.target.value as ImageRotationMode)}
-                  disabled={!enableRotate}
-                >
-                  <Radio.Button value="fixed">固定角度</Radio.Button>
-                  <Radio.Button value="random">随机角度</Radio.Button>
-                </Radio.Group>
-              </Space>
-              {rotateMode === 'fixed' ? (
-                <Space wrap>
-                  <Text>角度 (°)：</Text>
-                  <InputNumber
-                    min={-360}
-                    max={360}
-                    step={1}
-                    value={rotateAngle}
-                    onChange={value => setRotateAngle(clampFixedAngle(value))}
-                    disabled={!enableRotate}
-                  />
-                </Space>
-              ) : (
-                <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                  <Space wrap>
-                    <Text>最小角度 (°)：</Text>
-                    <InputNumber
-                      min={-10}
-                      max={10}
-                      step={0.5}
-                      value={rotateMinAngle}
-                      onChange={value => setRotateMinAngle(clampRandomAngle(value))}
-                      disabled={!enableRotate}
-                    />
-                  </Space>
-                  <Space wrap>
-                    <Text>最大角度 (°)：</Text>
-                    <InputNumber
-                      min={-10}
-                      max={10}
-                      step={0.5}
-                      value={rotateMaxAngle}
-                      onChange={value => setRotateMaxAngle(clampRandomAngle(value))}
-                      disabled={!enableRotate}
-                    />
-                  </Space>
-                  <Text type="secondary">随机角度范围限定在 -10° 到 10°，每张图片会应用区间内的随机角度。</Text>
-                </Space>
-              )}
-              <Space>
-                <Switch checked={rotateAutoCrop} onChange={setRotateAutoCrop} disabled={!enableRotate} />
-                <Text>自动裁剪旋转后的空白区域</Text>
-              </Space>
-            </Space>
-          </Collapse.Panel>
+          {HashPanel({
+            enabled: enableHashRename,
+            onToggle: setEnableHashRename,
+            algorithm: hashAlgorithm,
+            onAlgorithmChange: setHashAlgorithm,
+          })}
+          {ResizePanel({
+            enabled: enableResize,
+            onToggle: setEnableResize,
+            width: resizeWidth,
+            height: resizeHeight,
+            onWidthChange: setResizeWidth,
+            onHeightChange: setResizeHeight,
+            fit: resizeFit,
+            onFitChange: value => setResizeFit(value),
+            withoutEnlargement: preventEnlarge,
+            onWithoutEnlargementChange: setPreventEnlarge,
+          })}
+          {CropPanel({
+            enabled: enableCrop,
+            onToggle: setEnableCrop,
+            top: cropTop,
+            bottom: cropBottom,
+            left: cropLeft,
+            right: cropRight,
+            onTopChange: value => setCropTop(clampCropInput(value)),
+            onBottomChange: value => setCropBottom(clampCropInput(value)),
+            onLeftChange: value => setCropLeft(clampCropInput(value)),
+            onRightChange: value => setCropRight(clampCropInput(value)),
+          })}
+          {CompressPanel({
+            enabled: enableCompress,
+            onToggle: setEnableCompress,
+            format: compressFormat,
+            onFormatChange: value => setCompressFormat(value),
+            quality: compressQuality,
+            onQualityChange: value => setCompressQuality(value),
+          })}
+          {RotatePanel({
+            enabled: enableRotate,
+            onToggle: setEnableRotate,
+            mode: rotateMode,
+            onModeChange: value => setRotateMode(value),
+            angle: rotateAngle,
+            onAngleChange: value => setRotateAngle(clampFixedAngle(value)),
+            minAngle: rotateMinAngle,
+            onMinAngleChange: value => setRotateMinAngle(clampRandomAngle(value)),
+            maxAngle: rotateMaxAngle,
+            onMaxAngleChange: value => setRotateMaxAngle(clampRandomAngle(value)),
+            autoCrop: rotateAutoCrop,
+            onAutoCropChange: setRotateAutoCrop,
+          })}
         </Collapse>
 
         <Divider style={{ margin: '16px 0' }} />
 
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Space>
-            <Switch checked={effectiveOverwrite} onChange={setOverwrite} disabled={enableHashRename} />
-            <Text>允许覆盖原文件（哈希刷新时将强制启用）</Text>
-          </Space>
-
-          {!effectiveOverwrite && (
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text type="secondary">输出目录（可选）：</Text>
-              <Space style={{ width: '100%' }}>
-                <Button 
-                  icon={<FolderOpenOutlined />} 
-                  onClick={handleSelectOutputDirectory}
-                  disabled={effectiveOverwrite}
-                >
-                  选择输出目录
-                </Button>
-                {outputDirectory && (
-                  <Button onClick={handleClearOutputDirectory}>
-                    清除
-                  </Button>
-                )}
-              </Space>
-              {outputDirectory && (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  当前输出目录: {outputDirectory}
-                </Text>
-              )}
-              {!outputDirectory && (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  未选择输出目录时，将在原图片所在目录生成新文件
-                </Text>
-              )}
-            </Space>
-          )}
-
-          <Space>
-            <Button type="primary" onClick={handleRun} disabled={disabled || running || !canRun} loading={running}>
-              开始批量处理
-            </Button>
-            {running && (
-              <Button danger onClick={onCancel}>
-                取消任务
-              </Button>
-            )}
-          </Space>
-        </Space>
+        <OutputControls
+          overwrite={effectiveOverwrite}
+          onOverwriteChange={setOverwrite}
+          overwriteForced={enableHashRename}
+          outputDirectory={outputDirectory}
+          onSelectOutputDirectory={handleSelectOutputDirectory}
+          onClearOutputDirectory={handleClearOutputDirectory}
+          canSelectOutputDirectory={!effectiveOverwrite}
+          onRun={handleRun}
+          onCancel={onCancel}
+          canRun={canRun}
+          disabled={disabled}
+          running={running}
+        />
       </Space>
     </Card>
   );

@@ -6,7 +6,9 @@ import { createTempFilePath, ensureDirectory } from './fileUtils';
 const MIN_RANDOM_ANGLE = -10;
 const MAX_RANDOM_ANGLE = 10;
 const AUTO_CROP_ALPHA_THRESHOLD = 18;
-const AUTO_CROP_INTENSITY_THRESHOLD = 15;
+const AUTO_CROP_INTENSITY_THRESHOLD = 18;
+const AUTO_CROP_MIN_VISIBLE_RATIO = 0.003;
+const AUTO_CROP_MIN_VISIBLE_FALLBACK = 2;
 
 export type OperationType = ImageBatchOperation['type'];
 
@@ -276,6 +278,8 @@ const calculateVisibleBounds = (
   let maxX = -1;
   let maxY = -1;
   const alphaIndex = Math.max(0, channels - 1);
+  const rowCounts = new Uint32Array(height);
+  const columnCounts = new Uint32Array(width);
 
   for (let y = 0; y < height; y += 1) {
     const rowOffset = y * width * channels;
@@ -286,11 +290,13 @@ const calculateVisibleBounds = (
       const b = data[offset + 2] ?? 0;
       const alpha = channels > 3 ? data[offset + alphaIndex] ?? 255 : 255;
 
-      const visibleByAlpha = alpha >= alphaThreshold;
-      const premultipliedMax = (Math.max(r, g, b) * alpha) / 255;
-      const visibleByColor = premultipliedMax >= intensityThreshold;
+  const visibleByAlpha = alpha >= alphaThreshold;
+  const maxChannel = Math.max(r, g, b);
+  const averageIntensity = (r + g + b) / 3;
+  const visibleByColor = maxChannel >= intensityThreshold || averageIntensity >= intensityThreshold;
+  const isVisible = visibleByAlpha && visibleByColor;
 
-      if (!(visibleByAlpha || visibleByColor)) {
+      if (!isVisible) {
         continue;
       }
 
@@ -298,6 +304,9 @@ const calculateVisibleBounds = (
       if (x > maxX) maxX = x;
       if (y < minY) minY = y;
       if (y > maxY) maxY = y;
+
+      rowCounts[y] += 1;
+      columnCounts[x] += 1;
     }
   }
 
@@ -305,11 +314,59 @@ const calculateVisibleBounds = (
     return null;
   }
 
-  return {
+  const fallbackBounds = {
     left: minX,
     top: minY,
     width: maxX - minX + 1,
     height: maxY - minY + 1,
+  } as const;
+
+  const minVisiblePerRow = Math.max(
+    AUTO_CROP_MIN_VISIBLE_FALLBACK,
+    Math.floor(width * AUTO_CROP_MIN_VISIBLE_RATIO),
+  );
+  const minVisiblePerColumn = Math.max(
+    AUTO_CROP_MIN_VISIBLE_FALLBACK,
+    Math.floor(height * AUTO_CROP_MIN_VISIBLE_RATIO),
+  );
+
+  let top = minY;
+  while (top <= maxY && rowCounts[top] < minVisiblePerRow) {
+    top += 1;
+  }
+
+  if (top > maxY) {
+    return fallbackBounds;
+  }
+
+  let bottom = maxY;
+  while (bottom >= top && rowCounts[bottom] < minVisiblePerRow) {
+    bottom -= 1;
+  }
+
+  let left = minX;
+  while (left <= maxX && columnCounts[left] < minVisiblePerColumn) {
+    left += 1;
+  }
+
+  if (left > maxX) {
+    return fallbackBounds;
+  }
+
+  let right = maxX;
+  while (right >= left && columnCounts[right] < minVisiblePerColumn) {
+    right -= 1;
+  }
+
+  if (right < left || bottom < top) {
+    return fallbackBounds;
+  }
+
+  return {
+    left,
+    top,
+    width: right - left + 1,
+    height: bottom - top + 1,
   } as const;
 };
 

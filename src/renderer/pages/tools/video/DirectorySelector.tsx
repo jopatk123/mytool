@@ -3,7 +3,7 @@ import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 import type { VideoScanResult } from '@shared/types/video';
 import { createLogger } from '@shared/utils/logger';
 import { Button, Input, Space } from 'antd';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useVideoToolStore } from './store';
 
 const logger = createLogger('DirectorySelector');
@@ -18,7 +18,7 @@ export function DirectorySelector() {
   const setError = useVideoToolStore((state) => state.setError);
   const electronAPI = useElectronAPI();
 
-  const handleScan = async () => {
+  const handleScan = useCallback(async () => {
     if (!directory.trim()) {
       setError('请输入有效的目录路径');
       return;
@@ -44,7 +44,22 @@ export function DirectorySelector() {
     } finally {
       setIsScanning(false);
     }
-  };
+  }, [directory, electronAPI, setScanResult, setIsScanning, setError]);
+
+  const handleBrowse = useCallback(async () => {
+    try {
+      const result = await electronAPI.selectFile({ properties: ['openDirectory'] });
+      if (result && result.length > 0) {
+        setDirectory(result[0]);
+        setError(null);
+        logger.info('Directory selected', { directory: result[0] });
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : '选择目录失败';
+      setError(errorMsg);
+      logger.error('Failed to select directory', { error });
+    }
+  }, [electronAPI, setError]);
 
   return (
     <Space.Compact style={{ width: '100%' }}>
@@ -54,6 +69,9 @@ export function DirectorySelector() {
         onChange={(e) => setDirectory(e.target.value)}
         onPressEnter={handleScan}
       />
+      <Button icon={<FolderOutlined />} onClick={handleBrowse}>
+        浏览
+      </Button>
       <Button type="primary" icon={<FolderOutlined />} onClick={handleScan}>
         扫描目录
       </Button>

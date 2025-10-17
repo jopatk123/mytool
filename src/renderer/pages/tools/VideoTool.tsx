@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { DirectorySelector } from './video/DirectorySelector';
 import { OperationsPanel } from './video/OperationsPanel';
 import { VideoFileTable } from './video/VideoFileTable';
+import { VideoPreview } from './video/VideoPreview';
 import { useVideoToolStore } from './video/store';
 
 function VideoTool() {
@@ -66,10 +67,14 @@ function VideoTool() {
           </Card>
         </Col>
 
-        <Col span={24}>
+        <Col span={12}>
           <Card title="视频列表" bodyStyle={{ padding: 0 }}>
             <VideoFileTable />
           </Card>
+        </Col>
+
+        <Col span={12}>
+          <VideoPreview />
         </Col>
       </Row>
     </div>

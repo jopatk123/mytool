@@ -48,6 +48,31 @@ export interface VideoConvertRequest {
 }
 
 /**
+ * 视频压缩请求
+ */
+export interface VideoCompressRequest {
+  inputPath: string;
+  outputPath: string;
+  quality?: 'low' | 'medium' | 'high'; // 压缩质量级别
+  targetBitrate?: number; // 目标比特率 (kbps)
+  scale?: string; // 缩放尺寸，如 '1280:720'，'-1:480' (保持宽高比)
+  format?: 'mp4' | 'mkv' | 'webm';
+}
+
+/**
+ * 视频压缩结果
+ */
+export interface VideoCompressResult {
+  success: boolean;
+  inputPath: string;
+  outputPath: string;
+  originalSize: number; // 原始文件大小（字节）
+  compressedSize: number; // 压缩后文件大小（字节）
+  compressionRatio: number; // 压缩比例
+  message?: string;
+}
+
+/**
  * 视频裁剪请求
  */
 export interface VideoTrimRequest {
@@ -96,8 +121,8 @@ export interface VideoFrameExtractResult {
  */
 export interface VideoBatchRequest {
   files: string[];
-  operation: 'convert' | 'trim' | 'extractFrames';
-  params: VideoConvertRequest | VideoTrimRequest | VideoFrameExtractRequest;
+  operation: 'convert' | 'trim' | 'extractFrames' | 'compress';
+  params: VideoConvertRequest | VideoTrimRequest | VideoFrameExtractRequest | VideoCompressRequest;
 }
 
 /**

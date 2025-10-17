@@ -2,7 +2,7 @@
   "name": "desktop-toolkit",
   "version": "1.0.0",
   "description": "一个可扩展的本地桌面工具集应用",
-  "main": "dist-electron/src/main/main.js",
+  "main": "dist-electron/src/main/bootstrap.js",
   "type": "module",
   "author": "Your Name",
   "license": "MIT",
@@ -29,6 +29,7 @@
     "clean": "rm -rf dist dist-electron release node_modules/.vite"
   },
   "dependencies": {
+    "module-alias": "^2.2.2",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "antd": "^5.12.0",
     "exif-parser": "^0.1.12",

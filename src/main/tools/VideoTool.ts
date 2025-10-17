@@ -1,6 +1,8 @@
 import type {
     VideoBatchRequest,
     VideoBatchResult,
+    VideoCompressRequest,
+    VideoCompressResult,
     VideoConvertRequest,
     VideoFrameExtractRequest,
     VideoFrameExtractResult,
@@ -14,6 +16,7 @@ import type { ToolExecuteContext } from '../../shared/types';
 import { ITool, ToolCategory, ToolConfig } from '../../shared/types';
 import { createLogger } from '../../shared/utils/logger';
 import { VideoBatchProcessor } from './video/VideoBatchProcessor';
+import { VideoCompressor } from './video/VideoCompressor';
 import { VideoFrameExtractor } from './video/VideoFrameExtractor';
 import { VideoInfoExtractor } from './video/VideoInfoExtractor';
 import { VideoScanner } from './video/VideoScanner';
@@ -26,6 +29,7 @@ type VideoAction =
   | 'scan'
   | 'convert'
   | 'trim'
+  | 'compress'
   | 'extractInfo'
   | 'extractFrames'
   | 'batchProcess';
@@ -34,6 +38,7 @@ interface VideoToolDependencies {
   scanner?: VideoScanner;
   transcoder?: VideoTranscoder;
   trimmer?: VideoTrimmer;
+  compressor?: VideoCompressor;
   infoExtractor?: VideoInfoExtractor;
   frameExtractor?: VideoFrameExtractor;
   batchProcessor?: VideoBatchProcessor;
@@ -41,13 +46,13 @@ interface VideoToolDependencies {
 
 /**
  * 视频处理工具
- * 提供视频扫描、转换、裁剪、帧提取等功能
+ * 提供视频扫描、转换、裁剪、压缩、帧提取等功能
  */
 export class VideoTool implements ITool {
   readonly config: ToolConfig = {
     id: 'video-tool',
     name: '视频处理工具',
-    description: '视频导入、格式转换、裁剪、帧提取与批量处理工具',
+    description: '视频导入、格式转换、裁剪、压缩、帧提取与批量处理工具',
     icon: '🎬',
     category: ToolCategory.VIDEO,
     enabled: true,
@@ -56,6 +61,7 @@ export class VideoTool implements ITool {
   private readonly scanner: VideoScanner;
   private readonly transcoder: VideoTranscoder;
   private readonly trimmer: VideoTrimmer;
+  private readonly compressor: VideoCompressor;
   private readonly infoExtractor: VideoInfoExtractor;
   private readonly frameExtractor: VideoFrameExtractor;
   private readonly batchProcessor: VideoBatchProcessor;
@@ -64,6 +70,7 @@ export class VideoTool implements ITool {
     this.scanner = deps.scanner ?? new VideoScanner();
     this.transcoder = deps.transcoder ?? new VideoTranscoder();
     this.trimmer = deps.trimmer ?? new VideoTrimmer();
+    this.compressor = deps.compressor ?? new VideoCompressor();
     this.infoExtractor = deps.infoExtractor ?? new VideoInfoExtractor();
     this.frameExtractor = deps.frameExtractor ?? new VideoFrameExtractor();
     this.batchProcessor = deps.batchProcessor ?? new VideoBatchProcessor();
@@ -87,6 +94,8 @@ export class VideoTool implements ITool {
         return this.handleConvert(params);
       case 'trim':
         return this.handleTrim(params);
+      case 'compress':
+        return this.handleCompress(params);
       case 'extractInfo':
         return this.handleExtractInfo(params);
       case 'extractFrames':
@@ -130,6 +139,14 @@ export class VideoTool implements ITool {
   private async handleTrim(params: unknown): Promise<string> {
     const request = this.normalizePayload<VideoTrimRequest>(params, '裁剪参数无效');
     return this.trimmer.trim(request);
+  }
+
+  /**
+   * 处理视频压缩
+   */
+  private async handleCompress(params: unknown): Promise<VideoCompressResult> {
+    const request = this.normalizePayload<VideoCompressRequest>(params, '压缩参数无效');
+    return this.compressor.compress(request);
   }
 
   /**

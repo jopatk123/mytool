@@ -20,6 +20,28 @@ export const formatDate = (timestamp: number): string => {
 };
 
 /**
+ * 格式化图片分辨率
+ */
+export const formatImageResolution = (width?: number, height?: number): string => {
+  if (!width || !height) {
+    return '未知';
+  }
+  return `${width} × ${height}`;
+};
+
+/**
+ * 计算图片纵横比
+ */
+export const calculateAspectRatio = (width?: number, height?: number): string => {
+  if (!width || !height) {
+    return '';
+  }
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+  const divisor = gcd(width, height);
+  return `${width / divisor}:${height / divisor}`;
+};
+
+/**
  * 获取文件扩展名
  */
 export const getFileExtension = (filename: string): string => {

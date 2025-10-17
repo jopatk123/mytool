@@ -1,6 +1,6 @@
+import type { ImageAsset, ImageBatchOperation } from '@shared/types';
 import * as path from 'node:path';
 import sharp from 'sharp';
-import type { ImageAsset, ImageBatchOperation } from '@shared/types';
 import { createTempFilePath, ensureDirectory } from './fileUtils';
 
 const MIN_RANDOM_ANGLE = -10;

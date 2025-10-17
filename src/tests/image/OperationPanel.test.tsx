@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
 import { OperationPanel } from '@renderer/pages/tools/image/OperationPanel';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { message } from 'antd';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@renderer/hooks/useElectronAPI', () => ({
   useElectronAPI: () => ({

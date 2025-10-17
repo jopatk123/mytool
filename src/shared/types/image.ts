@@ -52,6 +52,29 @@ export type ImageBatchOperation =
       autoCrop?: boolean;
     };
 
+/**
+ * 图片EXIF元数据（仅包含关键信息）
+ */
+export interface ImageEXIF {
+  /** 拍摄设备型号 */
+  model?: string;
+  /** 拍摄日期时间 */
+  dateTime?: string;
+  /** 光圈 */
+  fNumber?: string;
+  /** ISO感光度 */
+  iso?: number;
+  /** 曝光时间（快门速度） */
+  exposureTime?: string;
+  /** 焦距 */
+  focalLength?: string;
+  /** 地理位置信息 */
+  gps?: {
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
 export interface ImageAsset {
   id: string;
   name: string;
@@ -63,6 +86,18 @@ export interface ImageAsset {
   modifiedAt: number;
   createdAt: number;
   relativePath: string;
+  /** 图片宽度（像素） */
+  width?: number;
+  /** 图片高度（像素） */
+  height?: number;
+  /** 像素格式（如：rgba, rgb, etc） */
+  format?: string;
+  /** 颜色空间（如：srgb） */
+  colorSpace?: string;
+  /** 是否有透明通道 */
+  hasAlpha?: boolean;
+  /** EXIF元数据 */
+  exif?: ImageEXIF;
 }
 
 export interface ImageScanOptions {

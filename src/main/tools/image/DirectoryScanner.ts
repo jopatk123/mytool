@@ -1,8 +1,9 @@
-import { promises as fs, Dirent, Stats } from 'node:fs';
-import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { createLogger } from '../../../shared/utils/logger';
+import { Dirent, promises as fs, Stats } from 'node:fs';
+import * as path from 'node:path';
 import type { ImageAsset, ImageScanOptions, ImageScanResult } from '../../../shared/types';
+import { createLogger } from '../../../shared/utils/logger';
+import { ImageMetadataExtractor } from './ImageMetadataExtractor';
 
 const logger = createLogger('DirectoryScanner');
 
@@ -106,6 +107,10 @@ export class DirectoryScanner {
         const relativePath = path.relative(directory, filePath);
         // 使用自定义协议 local-file:// 替代 file:// 以便在 Electron 渲染进程中安全加载
         const fileUrl = `local-file://${filePath}`;
+
+        // 异步提取图片元数据
+        const metadata = await ImageMetadataExtractor.extractMetadata(filePath);
+
         const asset: ImageAsset = {
           id: buildAssetId(filePath),
           name: entry.name,
@@ -117,6 +122,13 @@ export class DirectoryScanner {
           modifiedAt: stat.mtimeMs,
           createdAt: stat.birthtimeMs,
           relativePath,
+          // 添加图片元数据
+          width: metadata?.width,
+          height: metadata?.height,
+          format: metadata?.format,
+          colorSpace: metadata?.colorSpace,
+          hasAlpha: metadata?.hasAlpha,
+          exif: metadata?.exif,
         };
 
         assets.push(asset);

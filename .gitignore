@@ -18,16 +18,22 @@ release
 !.vscode/extensions.json
 !.vscode/launch.json
 !.vscode/settings.json.example
+.vscode/settings.json
 .idea
+.idea/*
+!.idea/runConfigurations
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*~
 
 # Test coverage
 coverage
+.nyc_output
 
 # Environment variables
 .env
@@ -39,6 +45,17 @@ Thumbs.db
 
 # Build artifacts
 *.tsbuildinfo
+*.js.map
+*.css.map
+
+# Electron build artifacts
+out/
+electron-builder-effective-config.json
 
 # VSCodeCounter
 .VSCodeCounter
+
+# Temporary files
+*.tmp
+.tmp/
+temp/

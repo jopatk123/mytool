@@ -10,6 +10,7 @@ import { RotatePanel } from './operationPanel/RotatePanel';
 import { OutputControls } from './operationPanel/OutputControls';
 
 type HashRenameOperation = Extract<ImageBatchOperation, { type: 'hashRename' }>;
+type ResizeMode = 'fixed' | 'aspectRatio' | 'smart';
 
 const { Text } = Typography;
 
@@ -36,10 +37,7 @@ export function OperationPanel({
   const [enableResize, setEnableResize] = useState(false);
   const [resizeWidth, setResizeWidth] = useState<number | null>(null);
   const [resizeHeight, setResizeHeight] = useState<number | null>(null);
-  const [resizeFit, setResizeFit] = useState<'cover' | 'contain' | 'inside' | 'outside' | 'fill'>(
-    'inside',
-  );
-  const [preventEnlarge, setPreventEnlarge] = useState(true);
+  const [resizeMode, setResizeMode] = useState<ResizeMode>('aspectRatio');
 
   const [enableCompress, setEnableCompress] = useState(false);
   const [compressQuality, setCompressQuality] = useState(80);
@@ -176,8 +174,7 @@ export function OperationPanel({
         type: 'resize',
         width: resizeWidth ?? undefined,
         height: resizeHeight ?? undefined,
-        fit: resizeFit,
-        withoutEnlargement: preventEnlarge,
+        mode: resizeMode,
       });
     }
 
@@ -294,10 +291,8 @@ export function OperationPanel({
                   height={resizeHeight}
                   onWidthChange={setResizeWidth}
                   onHeightChange={setResizeHeight}
-                  fit={resizeFit}
-                  onFitChange={(value) => setResizeFit(value)}
-                  withoutEnlargement={preventEnlarge}
-                  onWithoutEnlargementChange={setPreventEnlarge}
+                  mode={resizeMode}
+                  onModeChange={setResizeMode}
                 />
               ),
             },

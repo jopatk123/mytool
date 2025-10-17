@@ -11,6 +11,8 @@ export interface ImageCropPixels {
 
 export type ImageRotationMode = 'fixed' | 'random';
 
+export type ImageResizeMode = 'aspectRatio' | 'smart' | 'fixed';
+
 export type ImageBatchOperation =
   | {
       type: 'hashRename';
@@ -22,6 +24,7 @@ export type ImageBatchOperation =
       type: 'resize';
       width?: number;
       height?: number;
+      mode?: ImageResizeMode;
       fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
       withoutEnlargement?: boolean;
       maintainAspectRatio?: boolean;

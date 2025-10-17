@@ -41,7 +41,7 @@ describe('OperationPanel', () => {
     // 展开其他面板来检查所有内容
     const resizeHeader = screen.getByText('尺寸调整');
     fireEvent.click(resizeHeader);
-    expect(screen.getByText('宽度 (px)：')).toBeTruthy();
+    expect(screen.getByText('缩放方式')).toBeTruthy();
   });
 
   it('builds operations from enabled controls', async () => {
@@ -64,12 +64,12 @@ describe('OperationPanel', () => {
     const getAllSwitches = () => screen.getAllByRole('switch');
     const switches = getAllSwitches();
 
-    // 索引：0=hash, 1=resize, 2=resize(prevent), 3=crop, 4=compress, 5=rotate, 6=autoCrop, 7=overwrite
+    // 索引：0=hash, 1=resize, 2=crop, 3=compress, 4=rotate, 5=autoCrop, 6=overwrite
     const hashSwitch = switches[0];
     const resizeSwitch = switches[1];
-    const compressSwitch = switches[4];
-    const rotateSwitch = switches[5];
-    const autoCropSwitch = switches[6];
+    const compressSwitch = switches[3];
+    const rotateSwitch = switches[4];
+    const autoCropSwitch = switches[5];
 
     fireEvent.click(hashSwitch); // 禁用 hash rename (默认开启)
     fireEvent.click(resizeSwitch); // enable resize

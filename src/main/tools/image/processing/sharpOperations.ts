@@ -118,11 +118,40 @@ const runSharpOperations = async (config: SharpOperationConfig): Promise<SharpOp
   }
 
   if (resizeOp) {
+    // 根据新的 mode 参数转换为 sharp 的 fit 选项
+    let fit: 'cover' | 'contain' | 'fill' | 'inside' | 'outside' = 'inside';
+    let withoutEnlargement = true;
+
+    if (resizeOp.mode) {
+      switch (resizeOp.mode) {
+        case 'fixed':
+          // 固定尺寸：强制使用指定尺寸，不保持宽高比
+          fit = 'fill';
+          withoutEnlargement = false;
+          break;
+        case 'smart':
+          // 智能填充：保持宽高比，裁剪到目标尺寸
+          fit = 'cover';
+          withoutEnlargement = true;
+          break;
+        case 'aspectRatio':
+        default:
+          // 等比缩放：长边不超过目标值
+          fit = 'inside';
+          withoutEnlargement = true;
+          break;
+      }
+    } else if (resizeOp.fit) {
+      // 兼容旧的 fit 参数（如果有的话）
+      fit = resizeOp.fit;
+      withoutEnlargement = resizeOp.withoutEnlargement ?? true;
+    }
+
     pipeline = pipeline.resize({
       width: resizeOp.width,
       height: resizeOp.height,
-      fit: resizeOp.fit ?? 'cover',
-      withoutEnlargement: resizeOp.withoutEnlargement ?? true,
+      fit,
+      withoutEnlargement,
       fastShrinkOnLoad: true,
     });
     applied.push('resize');

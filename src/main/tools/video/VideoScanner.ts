@@ -22,6 +22,7 @@ export class VideoScanner {
     try {
       const videos: VideoFileInfo[] = [];
       let totalFiles = 0;
+      const shouldRecurse = request.recursive === true;
 
       // 递归扫描目录
       const scanDir = async (dir: string) => {
@@ -31,8 +32,10 @@ export class VideoScanner {
           for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
 
-            if (entry.isDirectory() && request.recursive !== false) {
-              await scanDir(fullPath);
+            if (entry.isDirectory()) {
+              if (shouldRecurse) {
+                await scanDir(fullPath);
+              }
             } else if (entry.isFile()) {
               totalFiles++;
               const ext = path.extname(entry.name).toLowerCase();

@@ -1,10 +1,10 @@
+import { DirectorySelector } from '@renderer/pages/tools/video/DirectorySelector';
+import { OperationsPanel } from '@renderer/pages/tools/video/OperationsPanel';
+import { VideoFileTable } from '@renderer/pages/tools/video/VideoFileTable';
+import { VideoPreview } from '@renderer/pages/tools/video/VideoPreview';
+import { useVideoToolStore } from '@renderer/pages/tools/video/store';
 import { Alert, Card, Col, Row, Statistic } from 'antd';
 import { useMemo } from 'react';
-import { DirectorySelector } from './video/DirectorySelector';
-import { OperationsPanel } from './video/OperationsPanel';
-import { VideoFileTable } from './video/VideoFileTable';
-import { VideoPreview } from './video/VideoPreview';
-import { useVideoToolStore } from './video/store';
 
 function VideoTool() {
   const scanResult = useVideoToolStore((state) => state.scanResult);
@@ -67,13 +67,13 @@ function VideoTool() {
           </Card>
         </Col>
 
-        <Col span={12}>
+        <Col span={9}>
           <Card title="视频列表" bodyStyle={{ padding: 0 }}>
             <VideoFileTable />
           </Card>
         </Col>
 
-        <Col span={12}>
+        <Col span={15}>
           <VideoPreview />
         </Col>
       </Row>

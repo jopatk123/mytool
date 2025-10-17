@@ -12,71 +12,37 @@ export function VideoFileTable() {
   const scanResult = useVideoToolStore((state) => state.scanResult);
   const setPreview = useVideoToolStore((state) => state.setPreview);
 
+  const toLocalFileUrl = useCallback((filePath: string) => `local-file://${encodeURIComponent(filePath)}`, []);
+
   const handlePreview = useCallback((record: VideoFileInfo) => {
-    const fileUrl = `file://${record.path}`;
+    const fileUrl = toLocalFileUrl(record.path);
     setPreview({
       fileUrl,
       fileName: record.name,
       fileInfo: record,
     });
-  }, [setPreview]);
+  }, [setPreview, toLocalFileUrl]);
 
   const columns: ColumnsType<VideoFileInfo> = [
     {
       title: '文件名',
       dataIndex: 'name',
       key: 'name',
-      width: '25%',
-    },
-    {
-      title: '格式',
-      dataIndex: 'format',
-      key: 'format',
-      width: '8%',
-    },
-    {
-      title: '分辨率',
-      key: 'resolution',
-      render: (_, record) => {
-        if (record.width && record.height) {
-          return `${record.width}x${record.height}`;
-        }
-        return '-';
-      },
-      width: '12%',
-    },
-    {
-      title: '时长(秒)',
-      dataIndex: 'duration',
-      key: 'duration',
-      width: '10%',
-      render: (duration) => {
-        if (duration) {
-          return duration.toFixed(2);
-        }
-        return '-';
-      },
-    },
-    {
-      title: '帧率',
-      dataIndex: 'fps',
-      key: 'fps',
-      width: '8%',
-      render: (fps) => (fps ? `${fps} fps` : '-'),
+      ellipsis: true,
     },
     {
       title: '大小(MB)',
       key: 'size',
-      width: '10%',
       render: (_, record) => {
         const sizeMB = (record.size / 1024 / 1024).toFixed(2);
         return `${sizeMB} MB`;
       },
+      width: 110,
     },
     {
       title: '操作',
       key: 'action',
-      width: '10%',
+      width: 100,
       render: (_, record) => (
         <Button
           type="link"
@@ -97,6 +63,7 @@ export function VideoFileTable() {
       columns={columns}
       dataSource={videos}
       rowKey="path"
+      size="small"
       pagination={{
         pageSize: 10,
         showTotal: (total) => `总计 ${total} 个视频`,

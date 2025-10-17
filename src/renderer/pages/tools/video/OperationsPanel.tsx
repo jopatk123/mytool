@@ -2,7 +2,7 @@ import { CodeOutlined, CompressOutlined, ScissorOutlined, ZoomInOutlined } from 
 import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 import type { VideoCompressRequest } from '@shared/types/video';
 import { createLogger } from '@shared/utils/logger';
-import { Button, Form, InputNumber, Modal, Select, Space, Tooltip, message } from 'antd';
+import { Button, Checkbox, Form, InputNumber, Modal, Select, Space, Tooltip, message } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import { useVideoToolStore } from './store';
 
@@ -14,6 +14,8 @@ const logger = createLogger('OperationsPanel');
 export function OperationsPanel() {
   const scanResult = useVideoToolStore((state) => state.scanResult);
   const setError = useVideoToolStore((state) => state.setError);
+  const overwriteOriginal = useVideoToolStore((state) => state.overwriteOriginal);
+  const setOverwriteOriginal = useVideoToolStore((state) => state.setOverwriteOriginal);
   const [form] = Form.useForm();
   const electronAPI = useElectronAPI();
 
@@ -218,6 +220,18 @@ export function OperationsPanel() {
               <InputNumber min={0.5} max={10} placeholder="秒" />
             </Form.Item>
           </Form>
+        </div>
+
+        <div style={{ padding: '12px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+          <Checkbox
+            checked={overwriteOriginal}
+            onChange={(event) => setOverwriteOriginal(event.target.checked)}
+          >
+            允许覆盖原文件
+          </Checkbox>
+          <p style={{ marginTop: 8, marginBottom: 0, color: '#8c8c8c', fontSize: 12 }}>
+            默认保留原始视频，勾选后处理结果将直接覆盖源文件。
+          </p>
         </div>
       </Space>
 

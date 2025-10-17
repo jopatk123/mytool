@@ -12,11 +12,15 @@ interface VideoToolStore {
   isScanning: boolean;
   error: string | null;
   preview: VideoPreview | null;
+  includeSubdirectories: boolean;
+  overwriteOriginal: boolean;
 
   setScanResult: (result: VideoScanResult | null) => void;
   setIsScanning: (scanning: boolean) => void;
   setError: (error: string | null) => void;
   setPreview: (preview: VideoPreview | null) => void;
+  setIncludeSubdirectories: (value: boolean) => void;
+  setOverwriteOriginal: (value: boolean) => void;
 }
 
 /**
@@ -27,9 +31,13 @@ export const useVideoToolStore = create<VideoToolStore>((set) => ({
   isScanning: false,
   error: null,
   preview: null,
+  includeSubdirectories: false,
+  overwriteOriginal: false,
 
   setScanResult: (result) => set({ scanResult: result }),
   setIsScanning: (scanning) => set({ isScanning: scanning }),
   setError: (error) => set({ error }),
   setPreview: (preview) => set({ preview }),
+  setIncludeSubdirectories: (value) => set({ includeSubdirectories: value }),
+  setOverwriteOriginal: (value) => set({ overwriteOriginal: value }),
 }));

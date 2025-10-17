@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { ToolManager } from '../main/tools/ToolManager';
 
 describe('ToolManager', () => {
@@ -47,6 +47,17 @@ describe('ToolManager', () => {
     expect(audioTool).toBeDefined();
     expect(audioTool?.name).toBe('音频处理工具');
     expect(audioTool?.category).toBe('audio');
+  });
+
+  it('should have video tool', async () => {
+    await toolManager.initialize();
+    const tools = toolManager.getAllTools();
+
+    const videoTool = tools.find((t) => t.id === 'video-tool');
+    expect(videoTool).toBeDefined();
+    expect(videoTool?.name).toBe('视频处理工具');
+    expect(videoTool?.category).toBe('video');
+    expect(videoTool?.enabled).toBe(true);
   });
 
   it('should cleanup without errors', async () => {

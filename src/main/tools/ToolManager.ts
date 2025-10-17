@@ -1,9 +1,10 @@
 import { AppError, AppErrorCode } from '../../shared/errors';
 import { ITool, ToolConfig, ToolExecuteContext } from '../../shared/types';
 import { createLogger } from '../../shared/utils/logger';
-import { ImageTool } from './ImageTool';
-import { FileTool } from './FileTool';
 import { AudioTool } from './AudioTool';
+import { FileTool } from './FileTool';
+import { ImageTool } from './ImageTool';
+import { VideoTool } from './VideoTool';
 
 const logger = createLogger('ToolManager');
 
@@ -24,10 +25,12 @@ export class ToolManager {
       const imageTool = new ImageTool();
       const fileTool = new FileTool();
       const audioTool = new AudioTool();
+      const videoTool = new VideoTool();
 
       await this.registerTool(imageTool);
       await this.registerTool(fileTool);
       await this.registerTool(audioTool);
+      await this.registerTool(videoTool);
 
       logger.success(`Initialized ${this.tools.size} tools`);
     } catch (error) {

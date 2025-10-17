@@ -8,6 +8,7 @@ import Home from './pages/Home';
 const ImageTool = lazy(() => import('./pages/tools/ImageTool'));
 const FileTool = lazy(() => import('./pages/tools/FileTool'));
 const AudioTool = lazy(() => import('./pages/tools/AudioTool'));
+const VideoTool = lazy(() => import('./pages/tools/VideoTool'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 // 加载中的占位符
@@ -60,6 +61,14 @@ function App() {
             element: (
               <Suspense fallback={<LoadingFallback />}>
                 <AudioTool />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'tools/video',
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <VideoTool />
               </Suspense>
             ),
           },

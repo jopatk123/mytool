@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Space } from 'antd';
 import {
-  PictureOutlined,
-  FolderOutlined,
-  ToolOutlined,
-  CustomerServiceOutlined,
+    CustomerServiceOutlined,
+    FolderOutlined,
+    PictureOutlined,
+    ToolOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
 import { ToolConfig } from '@shared/types';
 import { createLogger } from '@shared/utils/logger';
-import { useElectronAPI } from '@renderer/hooks/useElectronAPI';
+import { Card, Col, Row, Space, Typography } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const logger = createLogger('HomePage');
 
@@ -42,6 +42,8 @@ function Home() {
         return <FolderOutlined />;
       case 'audio':
         return <CustomerServiceOutlined />;
+      case 'video':
+        return <span style={{ fontSize: '24px' }}>🎬</span>;
       default:
         return <ToolOutlined />;
     }
@@ -71,6 +73,11 @@ function Home() {
 
                   if (tool.category === 'audio') {
                     navigate('/tools/audio');
+                    return;
+                  }
+
+                  if (tool.category === 'video') {
+                    navigate('/tools/video');
                     return;
                   }
 

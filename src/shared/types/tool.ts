@@ -7,6 +7,7 @@ export enum ToolCategory {
   IMAGE = 'image',
   FILE = 'file',
   AUDIO = 'audio',
+  VIDEO = 'video',
   TEXT = 'text',
   SYSTEM = 'system',
   OTHER = 'other',

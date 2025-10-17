@@ -1,5 +1,9 @@
 import { AppError, AppErrorCode } from '../../../shared/errors';
-import type { AudioBatchRequest, AudioBatchResult, AudioBatchResultItem } from '@shared/types/audio';
+import type {
+  AudioBatchRequest,
+  AudioBatchResult,
+  AudioBatchResultItem,
+} from '@shared/types/audio';
 import { createLogger } from '../../../shared/utils/logger';
 import { AudioTranscoder } from './AudioTranscoder';
 import { AudioTrimmer } from './AudioTrimmer';
@@ -17,8 +21,8 @@ export class AudioBatchProcessor {
       throw new AppError(AppErrorCode.INVALID_ARGUMENT, '批量处理请求无效');
     }
 
-    const tasks = request.tasks.filter((task) =>
-      typeof task?.sourcePath === 'string' && task.sourcePath.trim().length > 0,
+    const tasks = request.tasks.filter(
+      (task) => typeof task?.sourcePath === 'string' && task.sourcePath.trim().length > 0,
     );
 
     if (tasks.length === 0) {
@@ -58,7 +62,9 @@ export class AudioBatchProcessor {
                   ...operation.options,
                   overwrite: operation.options.overwrite ?? overwrite,
                   outputDirectory:
-                    operation.options.outputDirectory ?? task.outputDirectory ?? fallbackOutputDirectory,
+                    operation.options.outputDirectory ??
+                    task.outputDirectory ??
+                    fallbackOutputDirectory,
                   outputFileName: operation.options.outputFileName ?? task.outputFileName,
                 },
               });
@@ -71,7 +77,9 @@ export class AudioBatchProcessor {
                   ...operation.options,
                   overwrite: operation.options.overwrite ?? overwrite,
                   outputDirectory:
-                    operation.options.outputDirectory ?? task.outputDirectory ?? fallbackOutputDirectory,
+                    operation.options.outputDirectory ??
+                    task.outputDirectory ??
+                    fallbackOutputDirectory,
                   outputFileName: operation.options.outputFileName ?? task.outputFileName,
                 },
               });

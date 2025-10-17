@@ -24,7 +24,7 @@ export class AudioPreviewService {
     }
 
     try {
-  await fs.access(sourcePath, fsConstants.R_OK);
+      await fs.access(sourcePath, fsConstants.R_OK);
     } catch (error) {
       logger.error('Audio preview source not accessible', { sourcePath, error });
       throw new AppError(AppErrorCode.NOT_FOUND, '无法访问音频文件', { cause: error });

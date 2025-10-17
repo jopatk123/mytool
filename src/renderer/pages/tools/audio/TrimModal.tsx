@@ -85,11 +85,7 @@ export function TrimModal({ open, onClose }: TrimModalProps) {
       confirmLoading={loading}
       destroyOnClose
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{ startTime: 0, targetFormat: '' }}
-      >
+      <Form form={form} layout="vertical" initialValues={{ startTime: 0, targetFormat: '' }}>
         <Form.Item
           name="startTime"
           label="开始时间 (秒)"

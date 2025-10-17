@@ -19,13 +19,15 @@ export const resolveOutputPath = async (options: ResolveOutputPathOptions): Prom
   const { sourcePath, outputDirectory, outputFileName, targetExtension, overwrite, suffix } =
     options;
 
-  const baseDirectory = outputDirectory && outputDirectory.trim().length > 0
-    ? outputDirectory
-    : path.dirname(sourcePath);
+  const baseDirectory =
+    outputDirectory && outputDirectory.trim().length > 0
+      ? outputDirectory
+      : path.dirname(sourcePath);
 
-  const baseName = outputFileName && outputFileName.trim().length > 0
-    ? sanitizeFileName(outputFileName)
-    : sanitizeFileName(path.basename(sourcePath, path.extname(sourcePath)));
+  const baseName =
+    outputFileName && outputFileName.trim().length > 0
+      ? sanitizeFileName(outputFileName)
+      : sanitizeFileName(path.basename(sourcePath, path.extname(sourcePath)));
 
   const effectiveSuffix = suffix ? `_${suffix}` : '';
   const extension = targetExtension.startsWith('.') ? targetExtension : `.${targetExtension}`;
@@ -43,10 +45,7 @@ export const resolveOutputPath = async (options: ResolveOutputPathOptions): Prom
   while (counter < Number.MAX_SAFE_INTEGER) {
     try {
       await fs.access(candidate);
-      candidate = path.join(
-        baseDirectory,
-        `${baseName}${effectiveSuffix}-${counter}${extension}`,
-      );
+      candidate = path.join(baseDirectory, `${baseName}${effectiveSuffix}-${counter}${extension}`);
       counter += 1;
     } catch {
       break;

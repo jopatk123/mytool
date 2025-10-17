@@ -80,9 +80,13 @@ export class AudioMerger {
       }
     } catch (error) {
       logger.error('Audio merge failed', { error, sourcePaths });
-      throw new AppError(AppErrorCode.EXECUTION_FAILED, `音频合并失败: ${(error as Error).message}`, {
-        cause: error,
-      });
+      throw new AppError(
+        AppErrorCode.EXECUTION_FAILED,
+        `音频合并失败: ${(error as Error).message}`,
+        {
+          cause: error,
+        },
+      );
     } finally {
       try {
         await fs.rm(tempDir, { recursive: true, force: true });

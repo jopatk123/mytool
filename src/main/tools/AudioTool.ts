@@ -22,13 +22,7 @@ import { AudioPreviewService } from './audio/AudioPreviewService';
 
 const logger = createLogger('AudioTool');
 
-type AudioAction =
-  | 'scan'
-  | 'convert'
-  | 'trim'
-  | 'batchProcess'
-  | 'merge'
-  | 'preview';
+type AudioAction = 'scan' | 'convert' | 'trim' | 'batchProcess' | 'merge' | 'preview';
 
 interface AudioToolDependencies {
   scanner?: AudioScanner;

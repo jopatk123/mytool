@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -21,5 +21,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // 手动分割代码，减少主 bundle 大小
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          antd: ['antd'],
+          zustand: ['zustand'],
+        },
+      },
+    },
+    // 增加 chunk 大小警告阈值为 1000KB（由于工具应用的特性）
+    chunkSizeWarningLimit: 1000,
   },
 });

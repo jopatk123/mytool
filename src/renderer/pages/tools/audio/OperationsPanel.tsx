@@ -51,7 +51,7 @@ export function OperationsPanel() {
     try {
       setIsProcessing(true);
       const preview = await electronAPI.previewAudio({ sourcePath: selectedFiles[0].path });
-  setError(null);
+      setError(null);
       setPreview(preview);
       message.success('预览就绪');
     } catch (error) {

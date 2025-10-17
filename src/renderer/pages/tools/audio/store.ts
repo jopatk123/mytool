@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import type {
-  AudioScanResult,
-  AudioFileInfo,
-  AudioPreviewResult,
-} from '@shared/types/audio';
+import type { AudioScanResult, AudioFileInfo, AudioPreviewResult } from '@shared/types/audio';
 
 interface AudioToolState {
   directory: string;

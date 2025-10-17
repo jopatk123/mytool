@@ -89,11 +89,7 @@ export function ConvertModal({ open, onClose }: ConvertModalProps) {
         >
           <Select options={FORMAT_OPTIONS} />
         </Form.Item>
-        <Form.Item
-          name="bitrate"
-          label="比特率 (如 192k)"
-          tooltip="可选，示例：128k 或 192k"
-        >
+        <Form.Item name="bitrate" label="比特率 (如 192k)" tooltip="可选，示例：128k 或 192k">
           <Input placeholder="例如 192k" />
         </Form.Item>
         <Form.Item name="sampleRate" label="采样率 (Hz)">

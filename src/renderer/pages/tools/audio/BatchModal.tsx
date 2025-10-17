@@ -54,39 +54,49 @@ export function BatchModal({ open, onClose }: BatchModalProps) {
       setLoading(true);
       setIsProcessing(true);
 
-      const tasks = selectedFiles.map((file) => {
-        const operations: Array<
-          | { type: 'convert'; options: { targetFormat: string; bitrate?: string; sampleRate?: number; channels?: number } }
-          | { type: 'trim'; options: { startTime: number; duration?: number } }
-        > = [];
+      const tasks = selectedFiles
+        .map((file) => {
+          const operations: Array<
+            | {
+                type: 'convert';
+                options: {
+                  targetFormat: string;
+                  bitrate?: string;
+                  sampleRate?: number;
+                  channels?: number;
+                };
+              }
+            | { type: 'trim'; options: { startTime: number; duration?: number } }
+          > = [];
 
-        if (convertEnabled && values.convertTargetFormat) {
-          operations.push({
-            type: 'convert',
-            options: {
-              targetFormat: values.convertTargetFormat,
-              bitrate: values.convertBitrate,
-              sampleRate: values.convertSampleRate,
-              channels: values.convertChannels,
-            },
-          });
-        }
+          if (convertEnabled && values.convertTargetFormat) {
+            operations.push({
+              type: 'convert',
+              options: {
+                targetFormat: values.convertTargetFormat,
+                bitrate: values.convertBitrate,
+                sampleRate: values.convertSampleRate,
+                channels: values.convertChannels,
+              },
+            });
+          }
 
-        if (trimEnabled && typeof values.trimStart === 'number') {
-          operations.push({
-            type: 'trim',
-            options: {
-              startTime: values.trimStart,
-              duration: values.trimDuration,
-            },
-          });
-        }
+          if (trimEnabled && typeof values.trimStart === 'number') {
+            operations.push({
+              type: 'trim',
+              options: {
+                startTime: values.trimStart,
+                duration: values.trimDuration,
+              },
+            });
+          }
 
-        return {
-          sourcePath: file.path,
-          operations,
-        };
-      }).filter((task) => task.operations.length > 0);
+          return {
+            sourcePath: file.path,
+            operations,
+          };
+        })
+        .filter((task) => task.operations.length > 0);
 
       if (tasks.length === 0) {
         message.warning('请至少配置一个有效的批处理操作');

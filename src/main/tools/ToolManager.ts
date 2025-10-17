@@ -22,12 +22,12 @@ export class ToolManager {
     try {
       // 注册工具
       const imageTool = new ImageTool();
-  const fileTool = new FileTool();
-  const audioTool = new AudioTool();
+      const fileTool = new FileTool();
+      const audioTool = new AudioTool();
 
       await this.registerTool(imageTool);
       await this.registerTool(fileTool);
-  await this.registerTool(audioTool);
+      await this.registerTool(audioTool);
 
       logger.success(`Initialized ${this.tools.size} tools`);
     } catch (error) {

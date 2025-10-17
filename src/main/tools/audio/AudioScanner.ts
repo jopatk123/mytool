@@ -15,7 +15,7 @@ const logger = createLogger('AudioScanner');
 
 const DEFAULT_EXTENSIONS = ['.mp3', '.wav', '.flac', '.aac', '.m4a', '.ogg', '.opus', '.wma'];
 
-let parseFileFn: typeof import('music-metadata')['parseFile'] | null = null;
+let parseFileFn: (typeof import('music-metadata'))['parseFile'] | null = null;
 
 const getParseFile = async () => {
   if (!parseFileFn) {
@@ -50,9 +50,11 @@ export class AudioScanner {
       ...request.options,
     };
 
-    const baseExtensions = (request.options?.supportedExtensions?.length
-      ? request.options.supportedExtensions
-      : DEFAULT_EXTENSIONS) as string[];
+    const baseExtensions = (
+      request.options?.supportedExtensions?.length
+        ? request.options.supportedExtensions
+        : DEFAULT_EXTENSIONS
+    ) as string[];
 
     const supportedExtensions = new Set<string>(
       baseExtensions.map((ext: string) =>
@@ -158,8 +160,8 @@ export class AudioScanner {
     };
 
     try {
-  const parseFile = await getParseFile();
-  const parsed = await parseFile(filePath, { duration: true });
+      const parseFile = await getParseFile();
+      const parsed = await parseFile(filePath, { duration: true });
       metadata = {
         duration: parsed.format.duration ?? null,
         bitrate: parsed.format.bitrate ?? null,

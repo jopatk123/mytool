@@ -31,7 +31,13 @@ describe('AudioTool', () => {
   });
 
   it('delegates scan action to scanner', async () => {
-    const scanResult = { scanId: 'scan', directory: '/tmp', files: [], totalFiles: 0, filteredFiles: 0 };
+    const scanResult = {
+      scanId: 'scan',
+      directory: '/tmp',
+      files: [],
+      totalFiles: 0,
+      filteredFiles: 0,
+    };
     mocks.scanner.scan.mockResolvedValue(scanResult);
 
     const result = await tool.execute('scan', { directory: '/tmp' });
@@ -69,7 +75,11 @@ describe('AudioTool', () => {
   });
 
   it('delegates preview action to preview service', async () => {
-    const preview = { fileUrl: 'local-file:///tmp/in.mp3', mimeType: 'audio/mpeg', path: '/tmp/in.mp3' };
+    const preview = {
+      fileUrl: 'local-file:///tmp/in.mp3',
+      mimeType: 'audio/mpeg',
+      path: '/tmp/in.mp3',
+    };
     mocks.previewService.createPreview.mockResolvedValue(preview);
 
     const result = await tool.execute('preview', { sourcePath: '/tmp/in.mp3' });

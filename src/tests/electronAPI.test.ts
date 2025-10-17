@@ -28,15 +28,18 @@ describe('electron API wrapper', () => {
     await electronAPI.importCSV('/tmp/in.csv');
     await electronAPI.renameFiles([]);
     await electronAPI.deleteFiles([]);
-  await electronAPI.scanAudio({ directory: '/tmp/audio' });
-  await electronAPI.convertAudio({ sourcePath: '/tmp/in.mp3', options: { targetFormat: 'wav' } });
-  await electronAPI.trimAudio({ sourcePath: '/tmp/in.mp3', options: { startTime: 0, duration: 5 } });
+    await electronAPI.scanAudio({ directory: '/tmp/audio' });
+    await electronAPI.convertAudio({ sourcePath: '/tmp/in.mp3', options: { targetFormat: 'wav' } });
+    await electronAPI.trimAudio({
+      sourcePath: '/tmp/in.mp3',
+      options: { startTime: 0, duration: 5 },
+    });
     await electronAPI.batchProcessAudio({
       tasks: [{ sourcePath: '/tmp/in.mp3', operations: [] }],
       options: { concurrency: 1 },
     });
-  await electronAPI.mergeAudio({ sourcePaths: ['/tmp/a.mp3', '/tmp/b.mp3'] });
-  await electronAPI.previewAudio({ sourcePath: '/tmp/in.mp3' });
+    await electronAPI.mergeAudio({ sourcePaths: ['/tmp/a.mp3', '/tmp/b.mp3'] });
+    await electronAPI.previewAudio({ sourcePath: '/tmp/in.mp3' });
     unsubscribe();
     electronAPI.windowMinimize();
     electronAPI.windowMaximize();
@@ -64,12 +67,12 @@ describe('electron API wrapper', () => {
     expect(mock.importCSV).toHaveBeenCalledTimes(1);
     expect(mock.renameFiles).toHaveBeenCalledTimes(1);
     expect(mock.deleteFiles).toHaveBeenCalledTimes(1);
-  expect(mock.scanAudio).toHaveBeenCalledTimes(1);
-  expect(mock.convertAudio).toHaveBeenCalledTimes(1);
-  expect(mock.trimAudio).toHaveBeenCalledTimes(1);
-  expect(mock.batchProcessAudio).toHaveBeenCalledTimes(1);
-  expect(mock.mergeAudio).toHaveBeenCalledTimes(1);
-  expect(mock.previewAudio).toHaveBeenCalledTimes(1);
+    expect(mock.scanAudio).toHaveBeenCalledTimes(1);
+    expect(mock.convertAudio).toHaveBeenCalledTimes(1);
+    expect(mock.trimAudio).toHaveBeenCalledTimes(1);
+    expect(mock.batchProcessAudio).toHaveBeenCalledTimes(1);
+    expect(mock.mergeAudio).toHaveBeenCalledTimes(1);
+    expect(mock.previewAudio).toHaveBeenCalledTimes(1);
     expect(mock.windowMinimize).toHaveBeenCalledTimes(1);
     expect(mock.windowMaximize).toHaveBeenCalledTimes(1);
     expect(mock.windowClose).toHaveBeenCalledTimes(1);

@@ -98,7 +98,11 @@ const electronAPIMock: ElectronAPI = {
   trimAudio: vi.fn(async () => '/tmp/out-trim.wav'),
   batchProcessAudio: vi.fn(async () => ({ total: 0, succeeded: 0, failed: 0, items: [] })),
   mergeAudio: vi.fn(async () => '/tmp/merged.wav'),
-  previewAudio: vi.fn(async () => ({ fileUrl: 'local-file:///tmp/out.mp3', mimeType: 'audio/mpeg', path: '/tmp/out.mp3' })),
+  previewAudio: vi.fn(async () => ({
+    fileUrl: 'local-file:///tmp/out.mp3',
+    mimeType: 'audio/mpeg',
+    path: '/tmp/out.mp3',
+  })),
   reportError: vi.fn(),
   reportLog: vi.fn(),
   getObservabilitySnapshot: vi.fn(async () => ({ logs: [], errors: [] })),

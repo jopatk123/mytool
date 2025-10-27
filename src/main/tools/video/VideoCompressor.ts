@@ -1,8 +1,8 @@
 import type { VideoCompressRequest, VideoCompressResult } from '@shared/types/video';
 import { createLogger } from '@shared/utils/logger';
-import { spawn } from 'child_process';
 import { existsSync, statSync } from 'fs';
 import { dirname } from 'path';
+import { FFmpegService } from '../audio/FFmpegService';
 
 const logger = createLogger('VideoCompressor');
 
@@ -11,6 +11,12 @@ const logger = createLogger('VideoCompressor');
  * 使用 ffmpeg 进行视频压缩
  */
 export class VideoCompressor {
+  private readonly ffmpeg: FFmpegService;
+
+  constructor(ffmpegService?: FFmpegService) {
+    this.ffmpeg = ffmpegService ?? new FFmpegService();
+  }
+
   /**
    * 压缩视频
    */
@@ -33,7 +39,33 @@ export class VideoCompressor {
     // 构建 ffmpeg 命令参数
     const args = this.buildFFmpegArgs(request);
 
-    return this.executeFFmpeg(request, originalSize, args);
+    try {
+      // 执行 ffmpeg 命令
+      await this.ffmpeg.run(args, { timeoutMs: 3600000 }); // 1小时超时
+
+      if (!existsSync(request.outputPath)) {
+        throw new Error('输出文件未生成');
+      }
+
+      const compressedSize = statSync(request.outputPath).size;
+      const compressionRatio = (1 - compressedSize / originalSize) * 100;
+
+      const result: VideoCompressResult = {
+        success: true,
+        inputPath: request.inputPath,
+        outputPath: request.outputPath,
+        originalSize,
+        compressedSize,
+        compressionRatio: parseFloat(compressionRatio.toFixed(2)),
+        message: `压缩成功: ${(originalSize / 1024 / 1024).toFixed(2)}MB -> ${(compressedSize / 1024 / 1024).toFixed(2)}MB (${compressionRatio.toFixed(1)}% 减少)`,
+      };
+
+      logger.success('Video compressed successfully', result);
+      return result;
+    } catch (error) {
+      logger.error('Video compression failed', { error, request });
+      throw error;
+    }
   }
 
   /**
@@ -86,65 +118,5 @@ export class VideoCompressor {
       high: { bitrate: 2500, preset: 'medium' },
     };
     return settings[quality] || settings.medium;
-  }
-
-  /**
-   * 执行 FFmpeg 命令
-   */
-  private executeFFmpeg(
-    request: VideoCompressRequest,
-    originalSize: number,
-    args: string[],
-  ): Promise<VideoCompressResult> {
-    return new Promise((resolve, reject) => {
-      try {
-        const ffmpeg = spawn('ffmpeg', args, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
-
-        let errorOutput = '';
-
-        ffmpeg.stderr.on('data', (data: Buffer) => {
-          errorOutput += data.toString();
-        });
-
-        ffmpeg.on('close', (code: number) => {
-          if (code === 0) {
-            try {
-              const compressedSize = statSync(request.outputPath).size;
-              const compressionRatio = (1 - compressedSize / originalSize) * 100;
-
-              const result: VideoCompressResult = {
-                success: true,
-                inputPath: request.inputPath,
-                outputPath: request.outputPath,
-                originalSize,
-                compressedSize,
-                compressionRatio: parseFloat(compressionRatio.toFixed(2)),
-                message: `压缩成功: ${(originalSize / 1024 / 1024).toFixed(2)}MB -> ${(compressedSize / 1024 / 1024).toFixed(2)}MB (${compressionRatio.toFixed(1)}% 减少)`,
-              };
-
-              logger.success('Video compressed successfully', result);
-              resolve(result);
-            } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : String(error);
-              reject(new Error(`获取输出文件信息失败: ${errorMessage}`));
-            }
-          } else {
-            logger.error('FFmpeg failed', { code, error: errorOutput });
-            reject(new Error(`FFmpeg 压缩失败: ${errorOutput.slice(-500)}`));
-          }
-        });
-
-        ffmpeg.on('error', (error: Error) => {
-          logger.error('FFmpeg spawn error', error);
-          reject(new Error(`FFmpeg 启动失败: ${error.message}`));
-        });
-      } catch (error) {
-        logger.error('Compression error', error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        reject(new Error(`压缩出错: ${errorMessage}`));
-      }
-    });
   }
 }

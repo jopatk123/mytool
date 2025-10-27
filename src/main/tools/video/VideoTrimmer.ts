@@ -1,5 +1,8 @@
 import type { VideoTrimRequest } from '@shared/types/video';
+import { existsSync } from 'fs';
+import { dirname } from 'path';
 import { createLogger } from '../../../shared/utils/logger';
+import { FFmpegService } from '../audio/FFmpegService';
 
 const logger = createLogger('VideoTrimmer');
 
@@ -8,6 +11,12 @@ const logger = createLogger('VideoTrimmer');
  * 用于视频时间段裁剪
  */
 export class VideoTrimmer {
+  private readonly ffmpeg: FFmpegService;
+
+  constructor(ffmpegService?: FFmpegService) {
+    this.ffmpeg = ffmpegService ?? new FFmpegService();
+  }
+
   /**
    * 裁剪视频
    */
@@ -29,18 +38,33 @@ export class VideoTrimmer {
         throw new Error('Start time must be less than end time');
       }
 
-      // 构建裁剪命令
-      const command = this.buildTrimCommand(request);
-      logger.debug('FFmpeg command', { command });
+      // 验证输入文件存在
+      if (!existsSync(request.inputPath)) {
+        throw new Error(`输入文件不存在: ${request.inputPath}`);
+      }
 
-      // 模拟裁剪过程
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // 验证输出目录
+      const outputDir = dirname(request.outputPath);
+      if (!existsSync(outputDir)) {
+        throw new Error(`输出目录不存在: ${outputDir}`);
+      }
+
+      // 构建裁剪命令
+      const args = this.buildTrimCommand(request);
+      logger.debug('FFmpeg command', { args });
+
+      // 执行 ffmpeg 命令
+      await this.ffmpeg.run(args, { timeoutMs: 3600000 }); // 1小时超时
 
       logger.success('Video trimming completed', {
         input: request.inputPath,
         output: request.outputPath,
         duration: request.endTime - request.startTime,
       });
+
+      if (!existsSync(request.outputPath)) {
+        throw new Error('输出文件未生成');
+      }
 
       return request.outputPath;
     } catch (error) {
@@ -52,13 +76,18 @@ export class VideoTrimmer {
   /**
    * 构建FFmpeg裁剪命令
    */
-  private buildTrimCommand(request: VideoTrimRequest): string {
+  private buildTrimCommand(request: VideoTrimRequest): string[] {
     const duration = request.endTime - request.startTime;
 
-    return (
-      `ffmpeg -i "${request.inputPath}" ` +
-      `-ss ${request.startTime} -t ${duration} ` +
-      `-c copy "${request.outputPath}"`
-    );
+    const args: string[] = [
+      '-i', request.inputPath,
+      '-ss', String(request.startTime),
+      '-t', String(duration),
+      '-c', 'copy', // 无需重新编码，直接复制流
+      '-y', // 覆盖输出文件
+      request.outputPath,
+    ];
+
+    return args;
   }
 }

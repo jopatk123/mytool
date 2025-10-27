@@ -1,5 +1,8 @@
 import type { VideoConvertRequest } from '@shared/types/video';
+import { existsSync } from 'fs';
+import { dirname } from 'path';
 import { createLogger } from '../../../shared/utils/logger';
+import { FFmpegService } from '../audio/FFmpegService';
 
 const logger = createLogger('VideoTranscoder');
 
@@ -8,9 +11,14 @@ const logger = createLogger('VideoTranscoder');
  * 用于视频格式转换
  */
 export class VideoTranscoder {
+  private readonly ffmpeg: FFmpegService;
+
+  constructor(ffmpegService?: FFmpegService) {
+    this.ffmpeg = ffmpegService ?? new FFmpegService();
+  }
+
   /**
    * 转换视频格式
-   * 实际调用会使用FFmpeg或其他视频处理库
    */
   async convert(request: VideoConvertRequest): Promise<string> {
     logger.info('Starting video conversion', {
@@ -18,21 +26,35 @@ export class VideoTranscoder {
       output: request.outputPath,
       format: request.format,
       quality: request.quality,
+      codec: request.codec,
     });
 
     try {
-      // 这里实现实际的视频转换逻辑
-      // 在实际应用中，这会调用 ffmpeg 命令
-      const command = this.buildConvertCommand(request);
-      logger.debug('FFmpeg command', { command });
+      // 验证输入文件存在
+      if (!existsSync(request.inputPath)) {
+        throw new Error(`输入文件不存在: ${request.inputPath}`);
+      }
 
-      // 模拟转换过程
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // 验证输出目录
+      const outputDir = dirname(request.outputPath);
+      if (!existsSync(outputDir)) {
+        throw new Error(`输出目录不存在: ${outputDir}`);
+      }
+
+      // 构建 ffmpeg 命令参数
+      const args = this.buildFFmpegArgs(request);
+
+      // 执行 ffmpeg 命令
+      await this.ffmpeg.run(args, { timeoutMs: 3600000 }); // 1小时超时
 
       logger.success('Video conversion completed', {
         input: request.inputPath,
         output: request.outputPath,
       });
+
+      if (!existsSync(request.outputPath)) {
+        throw new Error('输出文件未生成');
+      }
 
       return request.outputPath;
     } catch (error) {
@@ -42,20 +64,41 @@ export class VideoTranscoder {
   }
 
   /**
-   * 构建FFmpeg转换命令
+   * 构建 FFmpeg 命令参数
    */
-  private buildConvertCommand(request: VideoConvertRequest): string {
-    const format = request.format || 'mp4';
-    const codec = this.getCodecForFormat(format, request.codec);
-    const quality = this.getQualityPreset(request.quality);
+  private buildFFmpegArgs(request: VideoConvertRequest): string[] {
+    const args: string[] = ['-i', request.inputPath];
 
-    return `ffmpeg -i "${request.inputPath}" -c:v ${codec} ${quality} "${request.outputPath}"`;
+    // 设置视频编码器
+    const codec = this.getCodecForFormat(request.format, request.codec);
+    args.push('-c:v', codec);
+
+    // 根据质量设置参数
+    const qualityPreset = this.getQualityPreset(request.quality);
+    args.push(...qualityPreset);
+
+    // 设置音频编码器
+    args.push('-c:a', 'aac');
+    args.push('-b:a', '128k');
+
+    // 其他优化参数
+    args.push('-movflags', '+faststart'); // 优化 mp4 以便在 web 中播放
+
+    // 设置输出格式
+    const format = request.format || 'mp4';
+    args.push(
+      '-f', format,
+      '-y', // 覆盖输出文件
+      request.outputPath,
+    );
+
+    return args;
   }
 
   /**
    * 获取格式对应的编码器
    */
-  private getCodecForFormat(format: string, codec?: string): string {
+  private getCodecForFormat(format?: string, codec?: string): string {
     if (codec) {
       const codecMap: Record<string, string> = {
         h264: 'libx264',
@@ -74,20 +117,20 @@ export class VideoTranscoder {
       mov: 'libx264',
     };
 
-    return defaultCodecs[format] || 'libx264';
+    return defaultCodecs[format || 'mp4'] || 'libx264';
   }
 
   /**
    * 获取质量预设
    */
-  private getQualityPreset(quality?: string): string {
-    const qualityMap: Record<string, string> = {
-      low: '-crf 28 -preset medium',
-      medium: '-crf 23 -preset medium',
-      high: '-crf 18 -preset slow',
-      lossless: '-crf 0 -preset veryslow',
+  private getQualityPreset(quality?: string): string[] {
+    const qualityMap: Record<string, string[]> = {
+      low: ['-crf', '28', '-preset', 'ultrafast'],
+      medium: ['-crf', '23', '-preset', 'medium'],
+      high: ['-crf', '18', '-preset', 'slow'],
+      lossless: ['-crf', '0', '-preset', 'veryslow'],
     };
 
-    return qualityMap[quality || 'medium'] || '-crf 23 -preset medium';
+    return qualityMap[quality || 'medium'] || ['-crf', '23', '-preset', 'medium'];
   }
 }

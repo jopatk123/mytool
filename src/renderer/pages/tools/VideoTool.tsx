@@ -1,9 +1,10 @@
+import { BatchOperationsPanel } from '@renderer/pages/tools/video/BatchOperationsPanel';
 import { DirectorySelector } from '@renderer/pages/tools/video/DirectorySelector';
 import { OperationsPanel } from '@renderer/pages/tools/video/OperationsPanel';
 import { VideoFileTable } from '@renderer/pages/tools/video/VideoFileTable';
 import { VideoPreview } from '@renderer/pages/tools/video/VideoPreview';
 import { useVideoToolStore } from '@renderer/pages/tools/video/store';
-import { Alert, Card, Col, Row, Statistic } from 'antd';
+import { Alert, Card, Col, Row, Statistic, Tabs } from 'antd';
 import { useMemo } from 'react';
 
 function VideoTool() {
@@ -53,8 +54,21 @@ function VideoTool() {
         </Col>
 
         <Col span={24}>
-          <Card title="操作">
-            <OperationsPanel />
+          <Card title="操作" bodyStyle={{ padding: '12px' }}>
+            <Tabs
+              items={[
+                {
+                  key: 'batch',
+                  label: '批量操作',
+                  children: <BatchOperationsPanel />,
+                },
+                {
+                  key: 'single',
+                  label: '单个文件操作',
+                  children: <OperationsPanel />,
+                },
+              ]}
+            />
             {error && (
               <Alert
                 type="error"

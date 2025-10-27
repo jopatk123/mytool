@@ -1,16 +1,25 @@
 import type {
-    VideoBatchRequest,
-    VideoBatchResult,
-    VideoConvertRequest,
-    VideoFrameExtractRequest,
-    VideoTrimRequest,
+  VideoBatchRequest,
+  VideoBatchResult,
+  VideoCompressRequest,
+  VideoConvertRequest,
+  VideoFrameExtractRequest,
+  VideoTrimRequest,
 } from '@shared/types/video';
 import { createLogger } from '../../../shared/utils/logger';
+import { VideoCompressor } from './VideoCompressor';
 import { VideoFrameExtractor } from './VideoFrameExtractor';
 import { VideoTranscoder } from './VideoTranscoder';
 import { VideoTrimmer } from './VideoTrimmer';
 
 const logger = createLogger('VideoBatchProcessor');
+
+interface VideoBatchProcessorDependencies {
+  transcoder?: VideoTranscoder;
+  trimmer?: VideoTrimmer;
+  frameExtractor?: VideoFrameExtractor;
+  compressor?: VideoCompressor;
+}
 
 /**
  * 视频批量处理器
@@ -20,11 +29,13 @@ export class VideoBatchProcessor {
   private readonly transcoder: VideoTranscoder;
   private readonly trimmer: VideoTrimmer;
   private readonly frameExtractor: VideoFrameExtractor;
+  private readonly compressor: VideoCompressor;
 
-  constructor() {
-    this.transcoder = new VideoTranscoder();
-    this.trimmer = new VideoTrimmer();
-    this.frameExtractor = new VideoFrameExtractor();
+  constructor(deps: VideoBatchProcessorDependencies = {}) {
+    this.transcoder = deps.transcoder ?? new VideoTranscoder();
+    this.trimmer = deps.trimmer ?? new VideoTrimmer();
+    this.frameExtractor = deps.frameExtractor ?? new VideoFrameExtractor();
+    this.compressor = deps.compressor ?? new VideoCompressor();
   }
 
   /**
@@ -71,6 +82,18 @@ export class VideoBatchProcessor {
             const result = await this.frameExtractor.extractFrames(extractRequest);
             output = result.outputDir;
             break;
+          }
+          case 'compress': {
+            const compressRequest: VideoCompressRequest = {
+              ...(request.params as VideoCompressRequest),
+              inputPath: file,
+            };
+            const result = await this.compressor.compress(compressRequest);
+            output = result.outputPath;
+            break;
+          }
+          default: {
+            throw new Error(`Unsupported batch operation: ${String(request.operation)}`);
           }
         }
 

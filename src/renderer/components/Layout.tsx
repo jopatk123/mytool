@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { Layout as AntLayout, Menu, theme, Button } from 'antd';
 import {
-  HomeOutlined,
-  PictureOutlined,
+  CustomerServiceOutlined,
   FolderOutlined,
-  SettingOutlined,
+  HomeOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  CustomerServiceOutlined,
+  PictureOutlined,
+  SettingOutlined,
+  VideoCameraOutlined,
 } from '@ant-design/icons';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { appInfo } from '@renderer/env';
+import { Layout as AntLayout, Button, Menu, theme } from 'antd';
+import { useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import './Layout.css';
 
 const { Header, Sider, Content } = AntLayout;
@@ -48,6 +49,11 @@ function Layout() {
           key: '/tools/file',
           icon: <FolderOutlined />,
           label: '文件工具',
+        },
+        {
+          key: '/tools/video',
+          icon: <VideoCameraOutlined />,
+          label: '视频工具',
         },
         {
           key: '/tools/audio',

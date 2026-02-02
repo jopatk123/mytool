@@ -30,9 +30,9 @@ const ensureDistPackage = () => {
     return;
   }
 
-  banner('Missing dist-electron/package.json — recreating with CommonJS type');
+  banner('Missing dist-electron/package.json — recreating with ES module type');
   fs.mkdirSync(distRoot, { recursive: true });
-  fs.writeFileSync(distPkgPath, JSON.stringify({ type: 'commonjs' }, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(distPkgPath, JSON.stringify({ type: 'module' }, null, 2) + '\n', 'utf8');
 };
 
 const newestMtime = (entries) => {
@@ -114,6 +114,20 @@ const runTscBuild = (forceEmit) => {
   if (result.status !== 0) {
     console.error(`[ensure-electron-dist] TypeScript compiler exited with code ${result.status}`);
     process.exitCode = result.status;
+    return false;
+  }
+
+  // 运行 tsc-alias 来转换路径别名
+  banner('Replacing TypeScript path aliases with relative imports');
+  const tcsBin = path.join(projectRoot, 'node_modules', '.bin', 'tsc-alias');
+  const aliasResult = spawnSync(tcsBin, ['-p', 'tsconfig.electron.json', '-f', '-fe', '.js'], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
+
+  if (aliasResult.status !== 0) {
+    console.error(`[ensure-electron-dist] tsc-alias exited with code ${aliasResult.status}`);
+    process.exitCode = aliasResult.status;
     return false;
   }
 

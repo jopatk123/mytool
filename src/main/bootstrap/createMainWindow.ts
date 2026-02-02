@@ -1,8 +1,14 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { existsSync, promises as fs } from 'fs';
 import type { App } from 'electron';
 import type Logger from '../../shared/utils/logger';
+
+// ESM 中定义 __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface CreateMainWindowOptions {
   app: App;

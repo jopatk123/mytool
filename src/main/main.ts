@@ -1,3 +1,19 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// ESM 不支持 __dirname 和 __filename，需要手动定义
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// 将其挂载到全局对象上，以便其他模块可以访问
+declare global {
+  var __dirname: string;
+  var __filename: string;
+}
+
+globalThis.__dirname = __dirname;
+globalThis.__filename = __filename;
+
 import { app, BrowserWindow, dialog, ipcMain, protocol } from 'electron';
 import { addLogListener, createLogger } from '../shared/utils/logger';
 import { observability } from './observability/Observability';

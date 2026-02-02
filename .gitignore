@@ -13,6 +13,9 @@ dist-electron
 release
 *.local
 
+# Dependency directories
+package-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
